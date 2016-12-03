@@ -1,0 +1,8 @@
+1. two fifo 
+ctl fifo: add/del timer task ;
+    when all timer tasks are done, and add a new task, need write to timer_fifo
+timer fifo: use select, 
+      when timeout, run all tasks that on time or passed the time;
+      when fifo can read, need recalc tv which is passed to select
+
+2. this example only handles timespec tv_sec, not tv_nsec.
