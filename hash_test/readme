@@ -1,0 +1,10 @@
+1. 
+string_hash() is good in distrubuting hashed items.
+test1() uses a 1024-sized array to store collisions of hashed index. 
+the number of strings to hash is 1024*1024. 
+the result of arr[] are printed in output.
+checking output find almost each item of arr[] are near 1024, which is a good result.
+
+2.
+need implement int32 hash, ipv4 addr hash, short16 hash.
+maybe borrow from kernel?
