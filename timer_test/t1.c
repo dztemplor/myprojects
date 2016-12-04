@@ -145,7 +145,7 @@ int del_timer_task(char * n)
 //still need a lock, as timer thread may del this task
      struct entry * tmp = NULL , *np;
      struct tailhead * head = &g_ctx.head;
-    np = NULL;
+     np = NULL;
      TAILQ_FOREACH_FROM_SAFE(np, head, link, tmp)
      {
           if (!strcmp(np->name, n))
@@ -238,9 +238,14 @@ int test1()
 
                add_timer_task(i);
           }
+          //"del task1"
           else if (!strncmp(buf, "del", 3))
           {
-               //del_timer_task();
+               if (p = strchr(buf, ' '))
+               {
+                    p++;
+                    del_timer_task(p);
+               }
           }
           else if (!strncmp(buf, "print", 5))
           {
