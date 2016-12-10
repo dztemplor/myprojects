@@ -1,4 +1,5 @@
-1. two fifo 
+1.  t1.c 
+two fifo 
 ctl fifo: add/del timer task ;
     when all timer tasks are done, and add a new task, need write to timer_fifo
 timer fifo: use select, 
@@ -6,3 +7,8 @@ timer fifo: use select,
       when fifo can read, need recalc tv which is passed to select
 
 2. this example only handles timespec tv_sec, not tv_nsec.
+
+3. t2.c
+one fifo, one thread, no need for locks
+use timer_fifo to serialize, all data (including pointer) were sent into fifo, then decode
+in timer_loop().
