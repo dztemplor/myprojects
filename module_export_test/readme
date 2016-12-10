@@ -1,0 +1,8 @@
+1. before build the on pc.
+call:  apt-get install linux-headers-$(uname -r)
+2. after build 3 dirs
+insert export_1 export_2, caller
+see how caller works
+note in caller's Makefile, KBUILD_EXTRA_SYMBOLS is used to find the extra symbols
+3. in caller.mod.c, in contains external symbols, and can be used to debug like "no symbol version for module_layout"
+note module_layout is in kernel's Module.symvers which is in /usr/src/linux-headers-3.19.0-25-generic/Module.symvers
