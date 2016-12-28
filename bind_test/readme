@@ -1,0 +1,9 @@
+1.
+this test shows a inter-process race condtion.
+
+for a socket fd, when we fork(), it's duplicated, and close() in one process doesn't destroy it in kernel, so SOCK_CLOEXEC is useful to close it after exec.
+
+bind() will fail in second bind1() if the close() is not done in both processes.
+
+note SOCK_CLOEXEC only works after calling exec(), if a process is forked, but not call exec(),
+bind will still fail.

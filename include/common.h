@@ -2,10 +2,7 @@
 #define COMMON_H
 
 
-#include <sys/types.h>          /* See NOTES */
-       #include <sys/socket.h>
   #include <sys/types.h>          /* See NOTES */
-       #include <sys/socket.h>
      #include <sys/un.h>
  #include <unistd.h>
 #include <errno.h>
@@ -25,10 +22,15 @@
 
        #include <semaphore.h>
  #include <time.h>
+  #include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 
 
 #include <sys/ipc.h>
 #include <sys/sem.h>
+#include <signal.h>
 
 
 union semun {
