@@ -29,7 +29,7 @@ clean:
 
 else
     # called from kernel build system: just declare what our modules are
-    obj-m := kthread_test.o kthread_tasklet.o tasklet_tasklet.o timer_timer.o
+    obj-m := kthread_test.o kthread_tasklet.o tasklet_tasklet.o timer_timer.o rcu_test.o
 endif
 
 
