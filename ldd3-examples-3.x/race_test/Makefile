@@ -17,7 +17,7 @@ KERNELDIR=/home/zdu/data/comcast-rdkb/arris-xb6-sdk7.1-puma7/build-puma7-atom-sd
 CROSS = ARCH=x86 
 
 modules:
-	$(MAKE) -C $(KERNELDIR) $(CROSS) M=$(PWD) modules
+	$(MAKE) -C $(KERNELDIR) $(CROSS) M=$(PWD) EXTRA_CFLAGS=-g  modules
 
 modules_install:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
@@ -29,7 +29,7 @@ clean:
 
 else
     # called from kernel build system: just declare what our modules are
-    obj-m := kthread_test.o kthread_tasklet.o tasklet_tasklet.o timer_timer.o rcu_test.o rcu_test_list.o
+    obj-m := kthread_test.o kthread_tasklet.o tasklet_tasklet.o timer_timer.o rcu_test.o rcu_test_list.o percpu_test.o
 endif
 
 
