@@ -19,6 +19,11 @@ testing this example on arm64 and i386-32 has different results.
 i386:
     alloc_page(__GFP_HIGHMEM), page_address() is null.
 
+page_address(): works on normal memory and pkmap memory
+kmap_to_page() and kmap_atomic_to_page(), changes virt address to page
+alloc_page(__GFP_HIGHMEM): not always return high memory, can retry with PageHighMem() to ensure get high memory
+
+
 */
 
 MODULE_LICENSE("Dual BSD/GPL");
