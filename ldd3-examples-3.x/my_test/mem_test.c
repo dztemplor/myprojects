@@ -27,7 +27,7 @@ alloc_page(__GFP_HIGHMEM): not always return high memory, can retry with PageHig
 */
 
 MODULE_LICENSE("Dual BSD/GPL");
-static int test1(void)
+int test1(void)
 {
 	struct page *page;
 	unsigned long mem;
@@ -68,6 +68,7 @@ static int test1(void)
 	vm = vmalloc(100);
 	printk("valid %d %p\n",  virt_addr_valid(vm), high_memory);
 	printk("vm %p %p %p\n", vm, virt_to_page(vm), page_address(virt_to_page(vm)));//should not ues virt_to_page()
+	printk("page %p\n", vmalloc_to_page(vm));
 	if (vm)
 		vfree(vm);
 	
@@ -108,11 +109,37 @@ void test2(void)
 
 	__free_page(page);
 }
+struct my_mem {
+	int d;
+};
+void test3(void)
+{
+	struct kmem_cache *my_cachep;
+	struct my_mem *mp;
+	my_cachep = kmem_cache_create("my_cache",
+								  sizeof(struct my_mem),
+								  16,
+								  SLAB_PANIC | SLAB_NOTRACK,
+								  NULL);
 
+	if (!my_cachep)
+		return;
+
+	mp = kmem_cache_alloc(my_cachep, GFP_KERNEL);
+	if (!mp)
+		return ;
+
+	kmem_cache_free(my_cachep, mp);
+
+	printk("%d\n ",kmem_cache_size(my_cachep));
+	
+	kmem_cache_destroy(my_cachep);
+}
 static int hello_init(void)
 {
 	test1();
 	test2();
+	test3();
 	return 0;
 }
 
