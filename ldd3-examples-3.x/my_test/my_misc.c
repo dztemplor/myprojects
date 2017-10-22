@@ -13,16 +13,26 @@
 #include <linux/mutex.h>
 #include <linux/workqueue.h>
 #include <linux/fs.h>
+#include <linux/slab.h>
 #include <linux/mm.h>       
 
 #include <asm/uaccess.h>
 /*this example demos misc device, and advanced driver operations like mmap() and poll()
 1. mmap() with simple_remap_mmap() makes /dev/my_misc like /dev/mem, as it maps physical addr
 into user space, try ldd3 mapper with "./mapper /dev/my_misc $pci_bar_addr 0", and check 
-devmem2 output, see they are same.*/
+devmem2 output, see they are same.
+2 page fault handler.
+this is more useful when exporting driver memory to user space.
+in this simple example, I just export a static page to userspace, each time mmap()/unmap() will
+change the memory content. don't support offset.
+*/
 
 
 static char my_buf[128];
+struct ctx {
+	struct page * page;
+};
+
 /*
  *	Now all the various file operations that we export.
  */
@@ -65,10 +75,16 @@ static int my_misc_ioctl(struct file *file,
  *	Also clear the previous interrupt data on an open, and clean
  *	up things on a close.
  */
-
 static int my_misc_open(struct inode *inode, struct file *file)
 {
+	struct ctx * p;
 	printk("dz in misc_open\n");
+
+	p = kmalloc(sizeof(*p), GFP_KERNEL);
+	p->page= alloc_page(GFP_KERNEL);
+	file->private_data = p;
+
+	
 	return 0;
 }
 
@@ -78,18 +94,31 @@ static int my_misc_release(struct inode *inode, struct file *file)
 	 * Turn off all interrupts once the device is no longer
 	 * in use and clear the data.
 	 */
+	struct ctx *p;
+	p = file->private_data;
 	printk("dz in misc_release\n");
+	__free_pages(p->page, 0);
+	kfree(p);
 	return 0;
 }
+static int g;
 void simple_vma_open(struct vm_area_struct *vma)
 {
-	printk(KERN_NOTICE "Simple VMA open, virt %lx, phys %lx\n",
-			vma->vm_start, vma->vm_pgoff << PAGE_SHIFT);
+	
+	struct ctx *c=vma->vm_private_data;
+	struct page *page = NULL;
+	void * p;
+	
+	page = c->page;
+	p = page_address(page);
+	
+	memset(p, ++g, PAGE_SIZE);
+	printk("in %s\n", __func__);
 }
 
 void simple_vma_close(struct vm_area_struct *vma)
 {
-	printk(KERN_NOTICE "Simple VMA close.\n");
+	printk("in %s\n", __func__);
 }
 
 
@@ -115,6 +144,42 @@ static int simple_remap_mmap(struct file *filp, struct vm_area_struct *vma)
 	return 0;
 }
 
+int scullp_vma_fault(struct vm_area_struct *vma,
+                                struct vm_fault *vmf)
+{
+	struct ctx *c=vma->vm_private_data;
+	struct page *page = NULL;
+
+
+	page = c->page;
+
+	get_page(page);
+	if (!page)
+		return VM_FAULT_SIGBUS;
+	vmf->page = page;
+	return 0;
+}
+
+
+struct vm_operations_struct scullp_vm_ops = {
+	.open =     simple_vma_open,
+	.close =    simple_vma_close,
+	.fault =   scullp_vma_fault,
+};
+
+
+int scullp_mmap(struct file *filp, struct vm_area_struct *vma)
+{
+	//struct inode *inode = filp->f_dentry->d_inode;
+
+	/* don't do anything here: "nopage" will set up page table entries */
+	vma->vm_ops = &scullp_vm_ops;
+	vma->vm_flags |= (VM_DONTEXPAND | VM_DONTDUMP);
+	vma->vm_private_data = filp->private_data;
+	simple_vma_open(vma);
+	return 0;
+}
+
 
 
 /*
@@ -129,7 +194,11 @@ static const struct file_operations my_misc_fops = {
 	.open		= my_misc_open,
 	.release	= my_misc_release,
 	.llseek		= noop_llseek,
+#if 0	
 	.mmap    = simple_remap_mmap,
+#else
+	.mmap    = scullp_mmap,
+#endif
 };
 
 static struct miscdevice my_misc_dev =
