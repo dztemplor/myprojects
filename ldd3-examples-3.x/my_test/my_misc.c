@@ -25,12 +25,18 @@ devmem2 output, see they are same.
 this is more useful when exporting driver memory to user space.
 in this simple example, I just export a static page to userspace, each time mmap()/unmap() will
 change the memory content. don't support offset.
+3. if define USE_VMALLOC,
+the test in point 2 is using vmalloc for a page, which is not a big change.
+actually you can set vmf->page to any type of page: normal page, kmaped page, kmap_atomiced page
+and vmalloced page.
+
 */
 
-
+#define USE_VMALLOC
 static char my_buf[128];
 struct ctx {
 	struct page * page;
+	void * m;
 };
 
 /*
@@ -81,7 +87,13 @@ static int my_misc_open(struct inode *inode, struct file *file)
 	printk("dz in misc_open\n");
 
 	p = kmalloc(sizeof(*p), GFP_KERNEL);
+#ifndef USE_VMALLOC	
 	p->page= alloc_page(GFP_KERNEL);
+#else
+	printk("using vmalloc\n");
+	p->m = vmalloc(2*PAGE_SIZE);
+	p->page= vmalloc_to_page(p->m);
+#endif
 	file->private_data = p;
 
 	
@@ -97,7 +109,11 @@ static int my_misc_release(struct inode *inode, struct file *file)
 	struct ctx *p;
 	p = file->private_data;
 	printk("dz in misc_release\n");
+#ifndef USE_VMALLOC	
 	__free_pages(p->page, 0);
+#else
+	vfree(p->m);
+#endif
 	kfree(p);
 	return 0;
 }
@@ -106,12 +122,15 @@ void simple_vma_open(struct vm_area_struct *vma)
 {
 	
 	struct ctx *c=vma->vm_private_data;
-	struct page *page = NULL;
 	void * p;
-	
+
+#ifndef USE_VMALLOC
+	struct page *page = NULL;
 	page = c->page;
 	p = page_address(page);
-	
+#else
+	p = c->m;
+#endif
 	memset(p, ++g, PAGE_SIZE);
 	printk("in %s\n", __func__);
 }
