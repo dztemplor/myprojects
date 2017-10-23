@@ -31,7 +31,7 @@ clean:
 else
     # called from kernel build system: just declare what our modules are
     obj-m := kthread_test.o kthread_tasklet.o tasklet_tasklet.o timer_timer.o rcu_test.o rcu_test_list.o percpu_test.o completion_test.o kthread_workqueue.o mem_test.o \
-	    kthread_test2.o my_misc.o
+	    kthread_test2.o my_misc.o my_misc_poll.o
 endif
 
 
