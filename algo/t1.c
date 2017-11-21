@@ -1,5 +1,5 @@
 #include "../include/common.h"
-
+#include <limits.h>
 struct _queue{
     struct _queue * next;
     int c;
@@ -842,6 +842,343 @@ void remove_queue(struct my_queue *q, struct _queue *n)
         
     }
 }
+void swap2(int *a, int *b)
+{
+	*a = *a^*b;
+	*b = *a^*b;
+	*a = *a^*b;
+}
+void print_arr(int *arr, int len)
+{
+	int i;
+	for (i=0; i<len; i++)
+		printf("%d ", arr[i]);
+	printf("\n");
+}
+void get_paren_arr(int *arr, int left, int right)
+{
+	if (left == 0 && right == 0)
+		print_arr(arr, 8);
+
+	if (left == right) {
+		arr[8-left-right] = '(';
+		get_paren_arr(arr, left-1, right);
+	}
+	else if (left < right) {
+		arr[8-left-right] = '(';
+		if (left >=1)
+		get_paren_arr(arr, left-1, right);
+		arr[8-left-right] = ')';
+		if (right >=1)
+		get_paren_arr(arr, left, right-1);
+	}
+	else
+		printf("wrong\n");
+}
+
+void test_1()
+{
+	int arr[8] = {0};
+	get_paren_arr(arr, 4, 4);
+}
+
+void sort_2_arr(int *a, int *b, int lena, int lenb)
+{
+	int index = lena+lenb-1, i;
+	int ia =lena-1, ib=lenb-1;
+	while(ia>=0 && ib>=0) {
+		a[index--] = a[ia]>b[ib] ? a[ia--]:b[ib--];
+	}
+	while(ib>=0)
+		a[index--] =b[ib--];
+}
+void test_2()
+{
+	int a[20] ={1,2,7,8,9};
+	int b[]= {3,4,5,6};
+	sort_2_arr(a,b, 5,4);
+	print_arr(a, 9);
+}
+
+int my_sqrt(int x)
+{
+	int left = 1, right= x/2;
+	int last_mid;
+
+	if (x<2) return x;
+	while(left <=right) {
+		int mid = (left+right)/2;
+		if (x/mid >mid ) {
+			left = mid+1;
+			last_mid =mid;
+		}else if (x/mid < mid) {
+			right =mid-1;
+		}
+		else
+			return mid;
+	}
+	return last_mid;
+}
+
+
+void test_3()
+{
+    printf("%d %d %d %d\n", my_sqrt(100), my_sqrt(81), my_sqrt(64), my_sqrt(1024));
+}
+
+int mypower(int x, int n)
+{
+    if (!n)
+        return 1;
+    int v = mypower(x, n/2);
+    if (n%2 == 0)
+        return v*v;
+    else
+        return v*v*x;
+}
+void test_4()
+{
+    printf("%d %d %d %d\n", mypower(2,10), mypower(3,5), mypower(4,6 ), mypower(7,8));
+}
+
+struct node2 {
+    int c;
+    struct node2 *next;
+};
+
+struct node2* init_list(int *arr, int len)
+{
+    int i;
+    struct node2 *n, *ret, *n1;
+    for (i=0; i<len ;i++) {
+        if (!i) {
+            ret = calloc(1, sizeof(*n));
+            ret->c = arr[0];
+            n = ret;
+        }
+        else {
+            n1 = calloc(1, sizeof(*n1));
+            n1->c = arr[i];
+            n->next = n1;
+            n = n1;
+        }
+    }
+    return ret;
+}
+struct node2 * find_pos(struct node2 *l, int c)
+{
+    struct node2 *p;
+    for (p= l; p; p=p->next) {
+        if (!p->next)
+            break;
+        if (p->c <= c && p->next->c > c)
+            break;
+    }
+    return p;
+}
+struct node2* insert_sort(struct node2 *l)
+{
+    struct node2 tmp;
+    struct node2 *p, *p2, *p1;
+    memset(&tmp, 0, sizeof(tmp));
+    tmp.c = INT_MIN;
+    p = &tmp;
+
+    for (p=l; p; ) {
+        p2 = p->next;
+        p1 = find_pos(&tmp, p->c);
+        p->next = p1->next;
+        p1->next = p;
+        p = p2;
+    }
+    return tmp.next;
+}
+
+void print_list(struct node2 *l)
+{
+    struct node2 *p = l;
+    for (p=l; p; p=p->next)
+        printf("%d ", p->c);
+    printf("\n");
+}
+void test_5()
+{
+    int arr[] = {2,1,3,5,4,6};
+    struct node2 *l;
+    int n = sizeof(arr)/sizeof(arr[0]);
+    l = init_list(arr, n);
+    print_list(l);
+    print_list(insert_sort(l));
+}
+
+void list_push(struct node2 *head, struct node2 *n)
+{
+    struct node2 *p = head;
+    for (p=head; p && p->next; p=p->next)
+        ;
+    p->next = n;
+    n->next = NULL;
+}
+void test_6()
+{
+    int arr[]= {1,2,3};
+    struct node2 *l, *n;
+    l = init_list(arr, sizeof(arr)/sizeof(arr[0]));
+    print_list(l);
+    n = calloc(1, sizeof(*n));
+    n->c = 4;
+    list_push(l, n);
+    print_list(l);
+}
+
+int reverse_int(int n)
+{
+    int tmp, ret=0;
+    while(n) {
+        tmp = n%10;
+        ret = ret*10+tmp;
+        n = (n-tmp)/10;
+    }
+    return ret;
+}
+
+void test_7()
+{
+    printf("%d\n", reverse_int(321));
+}
+
+struct node2 * reverse_list(struct node2 *l)
+{
+    struct node2 *p, l2, *p2;
+    l2.next =NULL;
+    for (p=l; p; p=p2) {
+        p2 = p->next;
+        p->next = l2.next;
+        l2.next = p;
+    }
+    return l2.next;
+}
+void test_9()
+{
+    struct node2 *l, *l2;
+    int arr[]= {1,2,3};
+    l = init_list(arr, sizeof(arr)/sizeof(arr[0]));
+    l2 = reverse_list(l);
+    print_list(l2);
+}
+
+struct node2* remove_dup(struct node2 *l)
+{
+    struct node2 *n, *prev=NULL;
+    struct node2 head, *p;
+    int push=0;
+    p = &head;
+    for (n=l; n; ) {
+        if (!prev) {//head
+            if (!n->next || n->next->c != n->c) {
+                push =1;
+            }
+        }
+        else if (!n->next) {
+            if (prev->c != n->c) {
+                push =1;
+            }
+        }
+        else {
+            if (prev->c != n->c && n->c != n->next->c) {
+                push = 1;
+            }
+        }
+
+        if (push) {
+            //printf("%d\n", n->c);
+            p->next = n;
+            p =n;
+            printf("%d\n", p->c);
+        }
+        push =0;
+        prev =n;
+        n= n->next;
+
+    }
+    p->next = NULL;
+    //printf("%d\n", p->c);
+    return head.next;
+}
+
+
+
+void test_8()
+{
+    int arr[]={1,2,2,3,4,4,1,5,5};
+    struct node2 *l, *l2;
+    l = init_list(arr, sizeof(arr)/sizeof(arr[0]));
+    l2 = remove_dup(l);
+    print_list(l2);
+}
+struct node2 * new_node(int c)
+{
+    struct node2 *n;
+    n=calloc(1, sizeof(*n));
+    if (n)
+        n->c = c;
+    return n;
+}
+struct node2 * add_list(struct node2 *l1, struct node2 *l2)
+{
+/*
+for each node in list, add number and generate a new node.
+   if (inc)
+      need add one more;
+   if (num >=10)
+      num = num%10;
+      set inc=1;
+   else
+     set inc=0
+   iterate until both lists are empty.
+   create a node, append to head
+*/
+    struct node2 *p1, *p2, *n, l, *p;
+    int num=0, inc=0;
+    memset(&l, 0, sizeof(l));
+    p= &l;
+    for(p1=l1, p2=l2; p1 ||p2; ) {
+        num =0;
+        if (p1)
+            num += p1->c;
+        if (p2)
+            num += p2->c;
+        if (inc)
+            num++;
+        if (num >=10) {
+            num -= 10;
+            inc = 1;
+        }
+        else
+            inc = 0;
+        n = new_node(num);
+        p->next = n;
+        p = p->next;
+        if (p1)
+            p1 = p1->next;
+        if (p2)
+            p2 = p2->next;
+        //
+    }
+    return l.next;
+}
+
+void test_10()
+{
+    int arr1[]= {2,4,3};
+    int arr2[]= {5,6,9,1};
+    struct node2 *l1, *l2, *l3;
+    l1= init_list(arr1, sizeof(arr1)/sizeof(int));
+    l2= init_list(arr2, sizeof(arr2)/sizeof(int));
+    l3 = add_list(l1,l2);
+    print_list(l3);
+}
+
 
 int main()
 {
@@ -1001,5 +1338,13 @@ int main()
     remove_queue(&q, n);
     print_queue4(&q);
 #endif
-
+#if 0	
+	int i=20, j=30;
+	swap2(&i, &j);
+	printf("%d %d\n", i,j);
+#endif
+	//test_2();
+	//test_3();
+        //test_4();
+        test_10();
 }
