@@ -1,5 +1,8 @@
 #include "../include/common.h"
 #include <limits.h>
+#include <ctype.h>
+#include <stdbool.h>
+
 struct _queue{
     struct _queue * next;
     int c;
@@ -1178,8 +1181,706 @@ void test_10()
     l3 = add_list(l1,l2);
     print_list(l3);
 }
+struct node2 * reverse_list2(struct node2 *l, int m, int n)
+{
+/*
+struct node2 *end, *start;
+for each node in l,
+   if node_index <m 
+     if node_index == m-1,
+       save node to start
+     continue
+   else if node_index >=m && node_index<=n
+     insert node after start.
+     if node_index == n
+       save it as end.
+   if node_index >n //this can be null
+      end->next = node
+*/
+    struct node2 *start,*end, *p, *p2, l2, *end2=NULL;
+    int index=0;
+    l2.next = l;
+    for (p=l; p; p = p2, index++) {
+        p2 = p->next;
+        if (index < m-1)
+            continue;
+        else if (index == m-1) {
+            start = p;
+            end = p2;
+        }
+        else if (index >=m && index <=n) {
+            p->next = start->next;
+            start->next = p;
+        }
+        else if (index == n+1)
+            end2 = p;
+    }
+    end->next = end2;
+    return l2.next;
+}
 
+void test_11()
+{
+    int arr1[]= {1,2,3,4,5};
+    struct node2 *l1, *l2;
+    l1= init_list(arr1, sizeof(arr1)/sizeof(int));
+    l2 = reverse_list2(l1, 2,4);
+    print_list(l2);
 
+    l2 = reverse_list2(l1, 2,3);
+    print_list(l2);
+    
+}
+struct node2 * partition_list(struct node2 *l, int x)
+{
+/*struct node2 l2, *node2 tmp;
+ int meet_bigger=0;
+for each node in l;
+  if node < x, 
+    if (!meet_bigger)
+      proceed and update tmp
+    else
+      put it after tmp;
+      proceed and update tmp
+  else if node >=x, 
+    meet_bigger =1;
+*/
+    struct node2 l2, *tmp, *p2, *p, *prev = NULL;
+    int meet_bigger=0;
+    l2.next = l;
+    l2.c = -1; //todo
+    for (p=&l2; p; p=p2) {
+        p2 = p->next;
+        if (p->c <x) {
+            if (!meet_bigger)
+                tmp = p;
+            else {
+                prev->next = p->next;
+                p->next = tmp->next;
+                tmp->next = p;
+                tmp = p;
+            }
+        }
+        else
+            meet_bigger = 1;
+        prev =p;
+    }
+    return l2.next;
+}
+void test_12()
+{
+    int arr1[]= {1,5,4,2,6,3};
+    struct node2 *l1, *l2;
+    l1= init_list(arr1, sizeof(arr1)/sizeof(int));
+    l2 = partition_list(l1, 6);
+    print_list(l2);
+    
+}
+
+struct node2 * remove_dup2(struct node2 *l, int x)
+{
+/*
+struct node2 l2, *tmp, *prev;
+for each node in l
+  if node!=prev && node!=next 
+    put node after l
+    update tmp
+    set tmp->next to null
+  else
+    continue;
+  update prev.
+*/
+    struct node2 l2, *tmp, *p, *p2, *prev=NULL;
+    int dup=0;
+    l2.next = NULL;
+    tmp = &l2;
+    if (!l || !l->next)
+        return l;
+    for (p=l; p; p=p2) {
+        p2 = p->next;
+        dup = 0;
+        if (p==l ) {
+            if (p->next && p->c == p->next->c)
+            dup = 1;
+        }
+        else if (p->next == NULL) {
+            if (prev->c == p->c)
+                dup = 1;
+        }
+        else if (prev->c == p->c || p->c == p->next->c)
+            dup = 1;
+        if (!dup) {
+            tmp->next = p;
+            tmp = p;
+            tmp->next = NULL;
+        }
+        prev = p;
+    }
+    return l2.next;
+}
+
+void test_13()
+{
+    int arr1[]= {1,2,3,3,4,4,5};
+    struct node2 *l1, *l2;
+    l1= init_list(arr1, sizeof(arr1)/sizeof(int));
+    l2 = remove_dup2(l1, 6);
+    print_list(l2);
+
+    int arr2[]= {1,1,1,2,3};
+    l1= init_list(arr2, sizeof(arr2)/sizeof(int));
+    l2 = remove_dup2(l1, 6);
+    print_list(l2);
+
+    int arr3[]= {1,1,1,2,2};
+    l1= init_list(arr3, sizeof(arr3)/sizeof(int));
+    l2 = remove_dup2(l1, 6);
+    print_list(l2);
+}
+struct node2 * rotate_list(struct node2 *l, int k, int len)
+{
+/*struct node2 l2, *end;
+  k=k%len
+  l2.next = l
+  update end to end of l
+  for i=0;i<len-k;i++
+    put l2 head node after end
+    end = p
+*/
+    struct node2 l2, *end, *p, *p2;
+    k = k%len;
+    l2.next = l;
+    int i;
+    end =l;
+    for (i=0; i<len-1; i++)
+        end = end->next;
+    p = l;
+    for (i=0; i<len-k && p; i++, p=p2) {
+        p2 = p->next;
+        l2.next= p->next;
+        end->next = p;
+        p->next = NULL;
+        end = p;
+        //print_list(l2.next);
+    }
+    return l2.next;
+}
+void test_14()
+{
+    int arr1[]= {1,2,3,4,5};
+    struct node2 *l1, *l2;
+    int n= sizeof(arr1)/sizeof(int);
+    l1= init_list(arr1, n);
+    l2 = rotate_list(l1, 2, n);
+    print_list(l2);
+
+}
+
+struct node2 * remove_list(struct node2 *l, int n)
+{
+/*node p,q, 
+p goes n first, then q/p goes until p->next is null.
+*/
+    struct node2 l2, *p, *q;
+    int i;
+    if (!l)
+        return l;
+    p = l;
+    for (i=0; i<n-1; i++)
+        p = p->next;
+    l2.next = l;
+    q = &l2;
+    while (p->next) {
+        p =p->next;
+        q =q->next;
+    }
+    if (q->next)
+        q->next = q->next->next;
+    return l2.next;
+}
+void test_15()
+{
+    int arr1[]= {1,2,3,4,5};
+    struct node2 *l1, *l2;
+    int n= sizeof(arr1)/sizeof(int);
+    l1= init_list(arr1, n);
+    l2 = remove_list(l1, 1);
+    print_list(l2);
+    l1= init_list(arr1, n);
+    l2 = remove_list(l1, 5);
+    print_list(l2);
+    l2 = remove_list(l1, 2);
+    print_list(l2);
+}
+struct node2 * swap_list(struct node2 *l)
+{
+/*
+struct node2 l2, *p, *p2, *q, *next.
+for each node in l
+  p2 = p->next;
+  if (!p2) break
+  next = p2;
+  p2 = next->next;
+  swap p and next
+  q forwards 2
+  p =p2
+*/
+    struct node2 l2, *p, *p2, *q, *next;
+    l2.next = l;
+    q=&l2;
+    p = l;
+    for (;p ;p=p2) {
+        p2 = p->next;
+        if (!p2)
+            break;
+        next = p2;
+        p2 =next->next;
+        q->next = next;
+        p->next = next->next;
+        next->next = p;
+
+        q= q->next->next;
+    }
+    return l2.next;
+}
+void test_16()
+{
+    int arr1[]= {1,2,3,4,5};
+    struct node2 *l1, *l2;
+    int n= sizeof(arr1)/sizeof(int);
+    l1= init_list(arr1, n);
+    l2 = swap_list(l1);
+    print_list(l2);
+
+    int arr2[]= {1,2,3,4};
+    n= sizeof(arr2)/sizeof(int);
+    l1= init_list(arr2, n);
+    l2 = swap_list(l1);
+    print_list(l2);
+}
+struct tag_s {int i; int arr[];} s1;
+
+void test_17()
+{
+    int (* arrPtr)[10]= NULL;
+    int matrix[5][10];
+    arrPtr= &matrix[1];
+    (*arrPtr)[0]= 5;
+    arrPtr[2][9]= 6;
+    printf("%d %d\n", matrix[1][0], matrix[3][9]);
+
+    int a[10];
+    arrPtr= (int (*)[10])a;
+    typedef int array_t[10];
+    array_t a2;
+    arrPtr = &a2;
+    a2[0]=1;
+    printf("%d\n", arrPtr[0][0]);
+
+}
+int valid_palin(char * str)
+{
+/*
+have 2 pointers, p1 from head, p2 from end
+p1++, p2--,
+check if *p1==*p2, ignore cases
+if not equal, return 0
+loop until p1>=p2 and p1 and p2 points to alphanumeric
+
+*/
+    char *p1, *p2;
+    if (!str || !strlen(str))
+        return 1;
+    for (p1=str, p2=str+strlen(str)-1; p1<p2; ) {
+        if (tolower(*p1) != tolower(*p2))
+            return 0;
+        while(p1 && !isalnum(*(++p1)))
+            ;
+        while(p2 && !isalnum(*(--p2)))
+            ;
+    }
+    return 1;
+}
+
+void test_18()
+{
+    char str[]="A man, a plan, a canal: Panama";
+    int ret = valid_palin(str);
+    printf("%d\n", ret);
+    char str1[]="race a car";
+    ret = valid_palin(str1);
+    printf("%d\n", ret);
+       
+}
+char * _strstr(char *hay, char *needle)
+{
+/*
+for each char in hay, compare if str starting there equal to needle
+compare substring: need check 2 terminations
+*/
+    char *p, *p2, *p1;
+    for (p=hay; *p; p++) {
+        for (p1=p, p2=needle; *p2 && *p1; p2++, p1++) {
+            if (*p2 != *p1)
+                break;
+        }
+        if (!*p2)
+            break;
+    }
+    if (*p)
+        return p;
+    else
+        return NULL;
+}
+
+void test_19()
+{
+    char str[]="A man";
+    char *p = _strstr(str, "man");
+    printf("%s\n", p);
+    p = _strstr(str, "A man1");
+    printf("%p\n", p);
+}
+int my_atoi(char *str)
+{
+/*
+handle -, +;
+handle overflow, return INT_MAX, INT_MIN.
+handle first chars not num chars.
+ignore trailing chars,
+ignore white spaces 
+
+for char in str
+  if char is whitespace, continue
+  if char is + or -, and sign not set, set sign
+     and sign is set, return 0
+  if is num, store it to num
+  if is not num, return.
+check overflow,
+  if num>INT_MAX/10 || num==INT_MAX/10 && (c-'0')+
+*/
+    int i, sign= 2, num=0;
+    if (!str)
+        return 0;
+    
+    for (i=0; i<strlen(str); i++) {
+        if (str[i]=='+') {
+            if (sign != 2)
+                return 0;
+            else
+                sign = 1;
+        }
+        else if (str[i]=='-') {
+            if (sign != 2)
+                return 0;
+            else
+                sign = -1;
+        }
+        else if (isspace(str[i]))
+            continue;
+        else if (isdigit(str[i])) {
+            if (sign == 2)
+                sign = 1;
+            if (num> INT_MAX/10 || (num == INT_MAX/10 &&
+                                    (str[i]-'0')>(sign>0? INT_MAX%10:-(INT_MIN%10)) ))
+                return sign>0? INT_MAX:INT_MIN;
+            else
+                num = num*10+(str[i]-'0');
+        }
+        else
+            break;
+    }
+    return num*sign;
+}
+
+void test_20()
+{
+    char *p="-3924x8fc";
+    printf("%d\n", my_atoi(p));
+    p ="+392";
+    printf("%d\n", my_atoi(p));
+    p ="++c";
+    printf("%d\n", my_atoi(p));
+    p = "2147483648";
+    printf("%d\n", my_atoi(p));
+    p = "-2147483658";
+    printf("%d\n", my_atoi(p));
+    
+}
+char * add_binary(char *str1, char *str2)
+{
+/*
+for i in str1 and str2, start from end
+get number, add them and inc, if number is 2, set str[i] to 1, inc=1
+when finish the loop and inc ==1, memmove str and add 1 in the head
+*/    
+    if (!str1 || !str2)
+        return NULL;
+
+    int len1=strlen(str1), len2=strlen(str2);
+    int len, i1, i2, inc=0, num=0, i;
+    char *str;
+    len = (len1>len2)? len1+1:len2+1;
+    str =calloc(1, len+1);
+    for(i1=len1-1, i2=len2-1, i=len-1; i1>=0 || i2>=0; i1--, i2--, i--) {
+        num = 0;
+        if (i1 >=0)
+            num += str1[i1]-'0';
+        if (i2 >=0)
+            num += str2[i2]-'0';
+        num+= inc;
+        if (num == 2) {
+            num = 0;
+            inc = 1;
+        }
+        str[i]=num+'0';
+    }
+    if (inc)
+        str[i] = '1';
+    else{
+        int j;
+        for (j=0;j<len-1; j++)
+            str[j]= str[j+1];
+        str[len-1] = 0;
+    }
+
+    return str;
+}
+void test_21()
+{
+    char *p1= "11", *p2="1", *str;
+    str = add_binary(p1, p2);
+    printf("%s\n", str);
+
+    p1= "100", p2="11";
+    str = add_binary(p1, p2);
+    printf("%s\n", str);
+
+    p1= "10001", p2="0";
+    str = add_binary(p1, p2);
+    printf("%s\n", str);
+}
+int find_parlin(char *s, int index, int len)
+{
+    int i1,i2, len1=1, len2=0;
+    for (i1=index, i2=index; i1-1>=0 && i2+1<len; i1--, i2++) {
+        if (s[i1-1]==s[i2+1])
+            len1+=2;
+        else
+            break;
+    }
+
+    for (i1=index, i2=index+1; i1>=0 && i2<len; i1--, i2++) {
+        if (s[i1]==s[i2])
+            len2+=2;
+        else
+            break;
+    }
+    return (len1>len2? len1:len2);
+}
+int find_longparlin(char *s)
+{
+/*
+for each char in s, 
+  set char as center, check until left and right, find the longparlin.
+find longparlin
+  aba: from b, check str[i-1], str[i+1] until not equal
+  abba: from b, check str[i], str[i+1], until not equal
+*/
+    if (!s)
+        return 0;
+    int ret=1, i;
+    int len = strlen(s);
+    for (i=0; i<len; i++) {
+        int n = find_parlin(s, i, len);
+        ret = n>ret? n:ret;
+    }
+    return ret;
+}
+
+void test_22()
+{
+    char *s="abcba1deed23";
+    int ret;
+    ret = find_longparlin(s);
+    printf("%d\n", ret);
+
+    s="abccba1deed23";
+    ret = find_longparlin(s);
+    printf("%d\n", ret);
+    
+}
+
+bool is_match(char *s, char *p)
+{
+/*
+if *s==0, return 1 if *p==0 too
+if p[1]==*, 
+  while *s== *p, return is_match(s, p+2)
+  if *s != *p, s++
+else
+  if *s == *p, is_match(s+1, p+1)
+  else return false
+handle of '.'
+  if *p == ., it matches *s
+*/
+    if (*s == 0)
+        return (*p == 0);
+    if (p[1] == '*') {
+        while (*s==*p || *p == '.') {
+            if (is_match(s, p+2))
+                return true;
+            s++;
+        }
+        return is_match(s, p+2);
+    }
+    else {
+        if (*s == *p || *p=='.')
+            return is_match(s+1, p+1);
+        else
+            return false;
+    }
+}
+void test_23()
+{
+    char *s="aabc";
+    int ret;
+    printf("%d\n", is_match(s, "abc"));
+    printf("%d\n", is_match(s, "bc"));
+    printf("%d\n", is_match(s, "a*b*c*"));
+    printf("%d\n", is_match(s, "a*abc"));
+    printf("%d\n", is_match(s, ".*bc"));
+    printf("%d\n", is_match(s, "...."));
+    printf("%d\n", is_match(s, "..bc"));
+    printf("%d\n", is_match(s, "*a.c*"));
+
+    printf("%d\n", is_match(s, "a*.c*"));
+
+    printf("%d\n", is_match(s, "abc1"));
+    printf("%d\n", is_match(s, "abd"));
+    printf("%d\n", is_match(s, "d*dbc"));
+    printf("%d\n", is_match(s, "*abc."));
+
+}
+int str_getnum(char * str)
+{
+    int i;
+    for(i=0; str[i]; i++) {
+        if (str[i]!= str[i+1])
+            break;
+    }
+    return i+1;
+}
+char * count_and_say(int n)
+{
+/*
+sequence starts from 1
+for i=0;i<n;i++
+  s=get_next(prev);
+  prev =s;
+get_next(prev, next)
+  for each char in str,
+    count char number, put in next "num char"
+*/
+
+    char prev[128]="1", next[128]={0};
+    int i, j;
+
+    for (i=0; i<n;i++) {
+        next[0]=0;
+        for (j=0; j<strlen(prev); ) {
+            int num;
+            num = str_getnum(prev+j);
+            sprintf(next+strlen(next), "%d%c", num, prev[j]);
+            j+=num;
+        }
+        strcpy(prev, next);
+    }
+    return strdup(prev);
+}
+
+void test_24()
+{
+    printf("%s\n", count_and_say(1));
+    printf("%s\n", count_and_say(3));
+    printf("%s\n", count_and_say(5));
+    printf("%s\n", count_and_say(7));
+}
+int str_compar(const void * arg1, const void * arg2)
+{
+    return  *((char *)arg1) - *((char *)arg2);
+}
+void remove_space(char *str)
+{
+    int i, j;
+    for (i=0;str[i]; ) {
+        if (str[i] == ' ') {
+            for (j=i; str[j]; j++) {
+                str[j] = str[j+1];
+            }
+        }
+        else
+            i++;
+    }
+}
+bool is_anagram(char *str1, char *str2)
+{
+/*for each str, remove space, qsort()
+  return if two string equal
+*/
+    char *s1, *s2;
+    int ret;
+    s1= strdup(str1);
+    s2= strdup(str2);
+    remove_space(s1);
+    remove_space(s2);
+    printf("%s %s\n", s1, s2);
+    qsort(s1, strlen(s1),1, str_compar);
+    qsort(s2, strlen(s2),1, str_compar);
+    ret = !strcmp(s1, s2);
+    free(s1);
+    free(s2);
+    return ret;
+}
+
+void test_25()
+{
+    printf("%d\n", is_anagram("dormitory","dirty room"));
+    printf("%d\n", is_anagram("tea","eat"));
+    printf("%d\n", is_anagram("tea 1234","12  eat34"));
+    printf("%d\n", is_anagram("adfd1", "aeraer"));
+    printf("%d\n", is_anagram("perere","aerara"));
+}
+int node_compar(const void *arg1,const void *arg2)
+{
+    return ((struct node2 *)arg1)->c - ((struct node2 *)arg2)->c;
+}
+void test_26()
+{
+    struct node2 *n1;
+    int i;
+    n1= calloc(1, sizeof(struct node2)*6);
+    n1[0].c=1;    n1[1].c=5;    n1[2].c=2;    n1[3].c=7;    n1[4].c=9;    n1[5].c=3;
+    qsort(n1, 6, sizeof(struct node2), node_compar);
+    for (i=0; i<6;i++)
+        printf("%d ", n1[i].c);
+    printf("\n");
+}
+int str_compar2(const void *arg1,const void *arg2)
+{
+    int ret;
+    ret = strcmp(*((char **)arg1), *((char **)arg2));
+    return ret;
+}
+
+void test_27()
+{
+    int i;
+    char *str[]={"123", "abc", "ded", "1er", "a9er", "dae"};
+    qsort(str, sizeof(str)/sizeof(str[0]), sizeof(char *), str_compar2);
+    for (i=0; i<sizeof(str)/sizeof(str[0]); i++)
+        printf("%s\n", str[i]);
+}
 int main()
 {
 #if 0    
@@ -1346,5 +2047,5 @@ int main()
 	//test_2();
 	//test_3();
         //test_4();
-        test_10();
+        test_27();
 }

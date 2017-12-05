@@ -4,6 +4,7 @@
 #include <stack>
 #include <algorithm>
 #include <unordered_map>
+#include <map>
 #include <string.h>
 
 using namespace std;
@@ -529,43 +530,152 @@ void test14()
     }
   cout<<endl;
 }
+/*
+lru_cache contains get(), set()
+has a map and list obj.
+list head contains latest element, tail contains oldest.
+get: find the node in list, put the node in list head, update map
+set: if exceed list size, erase the tail node, insert at list head,
+    update 2 nodes in map
+    if find the node, just update value info
+*/
+struct lru_cache {
+  struct node {
+    int k,v;
+    node(int k=0, int v=0): k(k),v(v){};
+  };
+  int size;
+  list<node> l;
+  map<int, list<node>::iterator>h;
+  lru_cache(int size =0): size(size) {};
+  int get(int key) {
+    if (h.find(key) == h.end())
+      return -1;
+    l.splice(l.begin(), l, h[key]);
+    h[key] = l.begin();
+    return h[key]->v;
+  };
+  void set(int key, int value) {
+    if (h.find(key) == h.end()) {
+      if (l.size() == size) {
+        h.erase(l.back().k);
+        l.pop_back();
+      }
+      l.push_front(node(key, value));
+      h[key] = l.begin();
+    }
+    else {
+      h[key]->v= value;
+      l.splice(l.begin(), l, h[key]);
+      h[key] = l.begin();
+    }
+  };
+  void print() {
+    for (auto p=l.begin(); p!=l.end(); p++) {
+      cout<<p->k<<","<<p->v <<" ";
+    }
+    cout <<endl;
+  };
+};
 
-class Complex {
-	public:
-		 double real, imag;
-		  Complex( int i ) { //
-			  cout << "int constru" << endl;
-			  real = i; imag = 0;
-			   }
-		   Complex( double r, double i )
-			    { real = r; imag = i; }
-};
-class Demo {
-	int id;
-	public:
-	Demo( int i )
-	{
-		id = i;
-		cout << "int cons: "<< i << endl;
-	}
-	~Demo()
-	{
-		cout <<  "int destruc"<< id << endl;
-	}
-};
-void Func(){
-	static Demo d2(2);
-	Demo d3(3);
-	cout << "func"<< endl;
+
+void test15()
+{
+  lru_cache cache(10);
+  cout << cache.get(1)<<endl;
+  for (int i=0; i<12; i++)
+    cache.set(i, i+100);
+  //cache.print();
 }
 
-class CMyclass {
-	 int n;
-	 static int s;
-	  };
+string int2roman(int num)
+{
+  const int radix[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+  const string symbol[] ={"M", "CM", "D", "CD", "C", "XC",
+                          "L", "XL", "X", "IX", "V", "IV", "I"};
 
+  string roman;
+  for (int i=0; num>0; i++) {
+    int count = num/radix[i];
+    num %= radix[i];
+    for (; count>0; --count) roman+= symbol[i];
+  }
+  return roman;
+}
 
+void test16()
+{
+  cout << int2roman(3100)<<endl;
+  cout << int2roman(3990)<<endl;
+  cout << int2roman(590)<<endl;
+  cout << int2roman(190)<<endl;
+  cout << int2roman(59)<<endl;
+  cout << int2roman(9)<<endl;
+}
+int roman2int(char * str)
+{
+/*
+for each char in s,
+change char to number, watch:
+ C: need check CM,CD,C
+ X: need check XC,XL,X
+ I: need check IX, IV, I
+
+add these numbers, return 
+*/  
+  const int radix[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+  const string symbol[] ={"M", "CM", "D", "CD", "C", "XC",
+                          "L", "XL", "X", "IX", "V", "IV", "I"};
+
+  int num = 0;
+
+  int n = sizeof(radix)/sizeof(radix[0]);
+  for (int i=0; i<strlen(str);) {
+    int index = -1;
+    int j=0;
+    for (j=0; j<n; j++) {
+      if (str[i]== 'C' || str[i]== 'X' || str[i]=='I') {
+        const char *tmp = symbol[j].c_str();
+        if ( str[i+1] && (str[i]==tmp[0] && str[i+1]==tmp[1])) {
+          i+=2;
+          break;
+        }
+      }
+      if (str[i] == symbol[j].at(0)) {
+        i++;
+        break;
+      }
+    }
+    index = j;
+    if (index <0)
+      return 0;
+    num += radix[index];
+  }
+  return num;
+}
+
+void test17()
+{
+  cout<<roman2int("MMMC")<<endl ;
+  cout<<roman2int("MMMCMXC")<<endl;
+  cout<<roman2int("DXC")<<endl;
+  cout<<roman2int("CXC")<<endl;
+  cout<<roman2int("LIX")<<endl;
+                                                                                                                                cout<<roman2int("IX")<<endl;
+}
+#if 0
+string find_longparlin(string &s)
+{
+/*
+  for each item i
+*/
+}
+void test16()
+{
+  string s("abccba1deed23");
+}
+#endif
 int main()
 {
-	cout<< sizeof(CMyclass) <<endl;
+  test17();
 }
