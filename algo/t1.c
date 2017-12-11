@@ -584,7 +584,6 @@ struct _node {
 void tree_print1(struct _node *root)
 {
     if (!root) {
-        printf("null\n");
         return;
     }
     printf("%d\n", root->c);
@@ -698,6 +697,7 @@ void tree_build(struct _node **root, int * arr, int len)
     for (i=0; i<len; i++) {
         if (arr[i] == -1) {
             n = NULL;
+            continue;
         }
         else  {
             n = calloc(1, sizeof(*n));
@@ -1881,6 +1881,120 @@ void test_27()
     for (i=0; i<sizeof(str)/sizeof(str[0]); i++)
         printf("%s\n", str[i]);
 }
+typedef int (*arr_t)[6];
+typedef int arr2_t[][6];
+int backtrace(int r, int c, int m, int n, arr2_t mat)
+{
+  if (r==m || c ==n)
+    return 1;
+  if (r>m || c>n)
+    return 0;
+  if (mat[r+1][c]==-1)
+    mat[r+1][c]=backtrace(r+1, c,m,n, mat);
+  if (mat[r][c+1] == -1)
+    mat[r][c+1] =backtrace(r, c+1, m, n, mat);
+  return mat[r+1][c] +mat[r][c+1];
+}
+
+int backtrace2(int r, int c, int m, int n, int *mat)
+{
+  if (r==m || c ==n)
+    return 1;
+  if (r>m || c>n)
+    return 0;
+  if (mat[(r+1)*(n+1)+c]==-1)
+      mat[(r+1)*(n+1)+c]=backtrace2(r+1, c,m,n, mat);
+  if (mat[(r)*(n+1)+c+1] == -1)
+      mat[r*(n+1)+c+1] =backtrace2(r, c+1, m, n, mat);
+  return mat[(r+1)*(n+1)+c] +mat[r*(n+1)+c+1];
+}
+
+struct obst {
+    int r, c;
+};
+void test_28()
+{
+  int m=8, n=50;
+  int mat[m+1][n+1];
+  int i,j;
+  //int[][] mat = new int[m+1][n+1];
+  for ( i=0;i<m+1; i++)
+    for ( j=0; j<n+1; j++)
+      mat[i][j]=-1;
+  
+  //printf("%d\n", backtrace(0, 0, m, n, mat));
+  printf("%d\n", backtrace2(0, 0, m, n, (int *)mat));
+}
+
+int backtrace3(int r, int c, int m, int n, int *mat, struct obst *obst, int len)
+{
+  if (r==m || c ==n)
+    return 1;
+  if (r>m || c>n)
+    return 0;
+  int i;
+  for (i=0; i<len ;i++)
+      if (r == obst[i].r && c==obst[i].c)
+          return 0;
+  if (mat[(r+1)*(n+1)+c]==-1)
+      mat[(r+1)*(n+1)+c]=backtrace3(r+1, c,m,n, mat, obst, len);
+  if (mat[(r)*(n+1)+c+1] == -1)
+      mat[r*(n+1)+c+1] =backtrace3(r, c+1, m, n, mat, obst, len);
+  return mat[(r+1)*(n+1)+c] +mat[r*(n+1)+c+1];
+}
+
+void test_29()
+{
+  int m=2, n=3;
+  int mat[m+1][n+1];
+  int i,j;
+  //int[][] mat = new int[m+1][n+1];
+  for ( i=0;i<m+1; i++)
+    for ( j=0; j<n+1; j++)
+      mat[i][j]=-1;
+
+  struct obst *p, *arr;
+  arr = calloc(1, 2*sizeof(*p));
+  p =calloc(1, sizeof(*p));
+  p->r = 1; p->c = 1;
+  arr[0] = *p;
+  p =calloc(1, sizeof(*p));
+  p->r = 1; p->c = 2;
+  arr[1]= *p;
+  
+  
+  //printf("%d\n", backtrace(0, 0, m, n, mat));
+  printf("%d\n", backtrace3(0, 0, m, n, (int *)mat, arr, 2));
+  for ( i=0;i<m+1; i++) {
+      for ( j=0; j<n+1; j++)
+          printf("%d ", mat[i][j]);
+      printf("\n");
+  }
+}
+void test_30()
+{
+    int arr[]= {1,2,3,-1,5,4,-1,-1, -1, 6,7};
+    struct _node *root;
+    int n = sizeof(arr)/sizeof(arr[0]);
+    tree_build(&root, arr, n);
+    //tree_print1(root);
+    //tree_print2(root);
+
+}
+void print_mat(int mat[][2][2])
+{
+    printf("%d\n", mat[1][1][1]);
+}
+void test_31()
+{
+    int mat[2][2][2]= {0};
+    int i,j,k;
+    for (i=0; i<2; i++)
+        for (j=0; j<2; j++)
+            for (k=0;k<2;k++)
+                mat[i][j][k]=i+j+k;
+    print_mat(mat);
+}
 int main()
 {
 #if 0    
@@ -2047,5 +2161,5 @@ int main()
 	//test_2();
 	//test_3();
         //test_4();
-        test_27();
+        test_31();
 }

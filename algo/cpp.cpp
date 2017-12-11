@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <map>
 #include <string.h>
+#include <sstream>
+
+#include <string>
 
 using namespace std;
 void print_vec(vector<int> &v)
@@ -94,7 +97,26 @@ void tree_preorder(node *root)
   }
   print_vec(result);
 }
-void tree_levelorder(vector<node *> v, vector<int> &result)
+void tree_inorder(node *root)
+{
+  vector<int> result;
+  stack<node*> s;
+  node *p = root;
+  while (!s.empty() || p) {
+    if (p) {
+      s.push(p);
+      p = p->left;
+    }
+    else  {
+      p = s.top();
+      s.pop();
+      result.push_back(p->c);
+      p = p->right;
+    }
+  }
+  print_vec(result);
+}
+void tree_levelorder(vector<node *> &v, vector<int> &result)
 {
   vector<node *> tmp;
   
@@ -134,8 +156,9 @@ void test2()
   node *root;
   
   root = init_tree2(arr, n, 0);
-  tree_preorder(root);
-
+  //tree_preorder(root);
+  tree_inorder(root);
+  
 }
 void test3()
 {
@@ -183,6 +206,7 @@ void print_flatten(node *root)
   cout <<endl;
 
 }
+#if 0
 void flatten(node *root)
 {
   if (!root)
@@ -199,6 +223,7 @@ void flatten(node *root)
   }
   //print_flatten(root);
 }
+
 void test5()
 {
   int arr[]= {1,2,3,4,5,-1,7};
@@ -212,7 +237,7 @@ void test5()
   cout <<endl;
   
 }
-
+#endif
 int min_total(vector<vector<int> >&tri)
 {
   for (int i=tri.size()-2; i>=0; i--)
@@ -656,13 +681,239 @@ add these numbers, return
 
 void test17()
 {
+#if 0
   cout<<roman2int("MMMC")<<endl ;
   cout<<roman2int("MMMCMXC")<<endl;
   cout<<roman2int("DXC")<<endl;
   cout<<roman2int("CXC")<<endl;
   cout<<roman2int("LIX")<<endl;
-                                                                                                                                cout<<roman2int("IX")<<endl;
+                          cout<<roman2int("IX")<<endl;
+#endif                                                 
+};
+bool get_token(string::iterator &p, string *token, string &path)
+{
+  int len;
+  p++;
+  auto j = find(p, path.end(), '/');
+  *token = string(p, j);
+  p = j;
+  return j != path.end();
 }
+string simplify_path(string &path)
+{
+/*
+list<char *> l
+for each str between /,
+   if str == .., if l.size(),  pop_back
+   if str == . or empty, continue
+   else l.push_back
+get_token(char *p, &token)
+  return 0 when end
+  /home/: token is home, p goes to next /
+according to l, construct string and return
+  start with /
+  for each str in l, add str/
+*/
+  string ret, token;
+  auto p=path.begin();
+  list<string >l;
+  while (1) {
+    int cont;
+    cont = get_token(p, &token, path);
+
+    if (token == "..") {
+      if (l.size())
+        l.pop_back();
+    }
+    else if (token=="." || token.empty())
+      ;
+    else
+      l.push_back(token);
+    if (!cont)
+      break;
+  }
+
+  stringstream out;
+  if (!l.size())
+    out <<"/";
+  else
+    for (auto str=l.begin(); str!=l.end(); str++) {
+      out<<'/'<<*str;
+    }
+  
+  return out.str();
+}
+
+void test_18()
+{
+    int i;
+    string s;
+    s = "/a/./b/../../c/";
+    cout << simplify_path(s)<<endl;
+    s = "/a/./b/../c";
+    cout << simplify_path(s)<<endl;
+    s = "/../";
+    cout << simplify_path(s)<<endl;
+    s = "/home///foo/";
+    cout << simplify_path(s)<<endl;
+}
+
+void tree_preorder2(node *root)
+{
+/*
+use a stack to store node, 
+first put root in stack
+for each node, print top, pop node, push right, left, 
+while( !s.empty())
+*/
+  stack<node *>s;
+  node *tmp;
+  if (!root)
+    return;
+  s.push(root);
+  while(!s.empty()) {
+    tmp = s.top();
+    cout<< tmp->c<<" ";
+    s.pop();
+    if (tmp->right)
+      s.push(tmp->right);
+    if (tmp->left)
+      s.push(tmp->left);
+  }
+  cout<<endl;
+}
+
+void test_19()
+{
+  int arr[]= {1,2,3,-1,5,4,-1};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root;
+  
+  root = init_tree2(arr, n, 0);
+  tree_preorder2(root);
+
+}
+struct node3 {
+  struct node3 *left, *right;
+  int i,j;
+  node3(int i=0, int j=0): i(i),j(j) {};
+};
+
+void robot_walk(node3 *p, int m, int n)
+{
+  struct node3 r;
+  
+}
+int uniquePaths(int r, int c,int m, int n) {
+  if (r>m || c>n) return 0; 
+  if (r==m || c==n) return 1;
+  return uniquePaths(r+1, c, m , n) + uniquePaths(r, c+1, m, n);
+}
+
+void test_20()
+{
+  cout<< uniquePaths(0, 0, 3,5)<<endl;
+}
+int tree_height(node *root)
+{
+  /*
+if root is null, return 0;
+else return bigger height of left and right, plus 1.
+*/  
+  if (!root)
+    return 0;
+  //cout<< "c "<<root->c ;
+  int left, right;
+  
+  left = tree_height(root->left);
+  right = tree_height(root->right);
+  if (left<0 || right<0 || abs(left-right)>1)
+    return -1;
+  return max(left, right)+1;
+}
+bool tree_balance(node *root)
+{
+  /*
+recursive, find height of root->left and root->right, check if diff >1
+to get height
+*/
+  if (!root)
+    return true;
+  return tree_height(root)>=0;
+}
+void test_22()
+{
+  int arr[]= {1,-1,2,-1,-1,-1,3};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root;
+  bool ret;
+  
+  root = init_tree2(arr, n, 0);
+  //ret = tree_balance(root);
+  //cout<<ret<<endl;
+  
+  int arr2[]= {1,2,3,4,-1,-1,5,6,-1};
+  n = sizeof(arr2)/sizeof(arr2[0]);
+  root = init_tree2(arr2, n, 0);
+  ret = tree_balance(root);
+  cout<<ret<<endl;
+}
+void flatten(node *root)
+{
+  if (!root)
+    return;
+  flatten(root->left);
+  flatten(root->right);
+  if (root->left) {
+    node *tmp;
+    for (tmp=root->left; tmp->right; tmp=tmp->right)
+      ;
+    tmp->right = root->right;
+    root->right = root->left;
+    root->left = NULL;
+  }
+}
+void test_23()
+{
+  int arr[]= {1,2,3,4,5,-1,7};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root, *tmp;
+  list<node *>l;
+  root = init_tree2(arr, n, 0);
+  flatten(root);
+  for (tmp=root; tmp->right; tmp=tmp->right)
+    cout<< tmp->c<<" ";
+  cout<<tmp->c <<" ";
+  cout <<endl;
+  
+}
+
+#if 0
+int backtrace(int r, int c, int m, int n, int mat[][6])
+{
+  if (r==m-1 && c ==n-1)
+    return 1;
+  if (r>=m || c>=n)
+    return 0;
+  if (mat[r+1][c]==-1)
+    mat[r+1][c]=backtrace(r+1, c,m,n, mat);
+  if (mat[r][c+1] == -1)
+    mat[r][c+1] =backtrace(r, c+1, m, n, mat);
+  return mat[r+1][c] +mat[r][c+1];
+}
+
+void test_21()
+{
+  int m=3, n=5;
+  int[][] mat=new int[m+1][n+1];
+  //int[][] mat = new int[m+1][n+1];
+  for (int i=0;i<m+1; i++)
+    for (int j=0; j<n+1; j++)
+      mat[i][j]=-1;
+  
+  cout<< backtrace(0, 0, m, n, mat);
+}
+#endif
 #if 0
 string find_longparlin(string &s)
 {
@@ -677,5 +928,6 @@ void test16()
 #endif
 int main()
 {
-  test17();
+  //test3();
+  test_23();
 }
