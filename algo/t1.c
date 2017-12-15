@@ -1995,6 +1995,59 @@ void test_31()
                 mat[i][j][k]=i+j+k;
     print_mat(mat);
 }
+void simple_recur(int *n)
+{
+    if (! *n)
+        return;
+
+    int tmp= *n/2;
+    simple_recur(&tmp);
+}
+void test_32()
+{
+    int n=10;
+    simple_recur(&n);
+}
+void swap(int *a, int *b)
+{
+    if (a==b)
+        return;
+    int tmp;
+    tmp= *a;
+    *a=*b;
+    *b=tmp;
+}
+void quick_sort(int *arr, int len)
+{
+/* pivot is arr[len-1]
+low= 0
+for each item, if item < pivot, swap with arr[low], then low++
+swap arr[low] and pivot
+recurse with 0~low and low+1~end by adjust arr pointer
+*/
+    int pivot, low, i;
+    if (len<=1)
+        return;
+    pivot = arr[len-1];
+    low = 0;
+    for(i=0; i<len-1; i++) {
+        if (arr[i] < pivot) {
+            swap(&arr[i], &arr[low]);
+            low++;
+        }
+    }
+    swap(&arr[low], &arr[len-1]);
+    quick_sort(arr, low);
+    quick_sort(arr+low+1, len-low-1);
+}
+
+void test_33()
+{
+    int arr[] = {2,3,1,10,6,5};
+    int len = sizeof(arr)/sizeof(arr[0]);
+    quick_sort(arr, len);
+    print_arr(arr, len);
+}
 int main()
 {
 #if 0    
@@ -2161,5 +2214,5 @@ int main()
 	//test_2();
 	//test_3();
         //test_4();
-        test_31();
+        //test_34();
 }

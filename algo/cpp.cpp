@@ -74,7 +74,7 @@ void test1()
   cout<< "strlen"<< strlen(str)<<endl;
 }
 struct node {
-  struct node *left, *right;
+  struct node *left, *right, *next;
   int c;
   node(int c=0): c(c) {};
 };
@@ -887,6 +887,254 @@ void test_23()
   cout <<endl;
   
 }
+void popu_next(vector<node *>&v)
+{
+/*
+v contains level-order nodes.
+for each node in v,
+  node[i]->next = node[i+1]; and end node's next is NULL
+
+*/
+  if (!v.size())
+    return;
+  vector<node *>tmp;
+  for (int i=0; i<v.size(); i++)   {
+    if (i== v.size()-1)
+      v[i]->next = NULL;
+    else
+      v[i]->next = v[i+1];
+  }
+  for (int i=0; i<v.size(); i++) {
+    if (v[i]->left)
+      tmp.push_back(v[i]->left);
+    if (v[i]->right)
+      tmp.push_back(v[i]->right);
+  }
+  popu_next(tmp);
+}
+void popu_next2(node *root)
+{
+  /*
+from root, create a list to link left and right. 
+send the list head to recur, and creat list to link left and right
+*/
+  node l, *p, *p2, *p3;
+  if (!root)
+    return;
+  l.next = NULL;
+  for (p=root, p3=&l; p; p=p2) {
+    p2 = p->next;
+    if (p->left) {
+      p3->next = p->left;
+      p3= p3->next;
+    }
+    if (p->right) {
+      p3->next = p->right;
+      p3=p3->next;
+    }
+  }
+  p3->next = NULL;
+  popu_next2(l.next);
+}
+void print_tree_next(node * root)
+{
+  if (!root)
+    return;
+  cout<<endl;
+  cout<< root->c << " ";
+                    if (root->next)  cout<<root->next->c;
+                          print_tree_next(root->left);
+                    print_tree_next(root->right);
+}
+void test_24()
+{
+  int arr[]= {1,2,3,4,5,-1,7};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root, *tmp;
+  vector<node *>v;
+  
+  root = init_tree2(arr, n, 0);
+  v.push_back(root);
+  popu_next2( root);
+  print_tree_next(root);
+  cout<<endl;
+}
+
+void print_preorder(node *root)
+{
+  if (!root)
+    return;
+  cout<< root->c<<" ";
+  print_preorder(root->left);
+  print_preorder(root->right);
+}
+void print_inorder(node *root)
+{
+  if (!root)
+    return;
+  print_inorder(root->left);
+  cout<< root->c <<" ";
+  print_inorder(root->right);
+}
+void print_postorder(node *root)
+{
+  if (!root)
+    return;
+  print_postorder(root->left);
+  print_postorder(root->right);
+  cout<< root->c <<" ";
+}
+
+int node_find(int *arr, int val, int len)
+{
+  int i;
+  for (i=0; i<len; i++) {
+    if (arr[i] == val)
+      break;
+  }
+  if (i>len)
+    printf("not found\n");
+  return i;
+}
+int times;
+node * construct_tree(int *preorder, int * inorder, int len)
+{
+  /*
+preorder's first is root node, find index in inorder,
+i1 is start of preorder, i2 is start of inorder
+in inorder, the left part is left tree (len1), right part is right tree(len2).
+in preorder, left part starts from 2nd node with len1, right part starts from end+1 with len2
+watch out len1 is 0 or len2 is 0
+*/
+  node *root;
+  int index, len1, len2;
+  if (!preorder || !inorder)
+    return NULL;
+  root = new node(preorder[0]);
+  index = node_find(inorder, root->c, len);
+  
+  len1 = index;
+
+  //printf("%d %d %d len1 %d\n", root->c, len ,index, len1);
+
+  if (len1<=0)
+    root->left = NULL;
+  else 
+    root->left = construct_tree(preorder+1, inorder, len1);
+
+  len2 = len-1-index;
+  if (len2<=0)
+    root->right = NULL;
+  else 
+    root->right = construct_tree(preorder+len1+1, inorder+index+1, len2);
+
+  return root;
+}
+void test_25()
+{
+  int arr1[]= {1,2,4,5,3,7};
+  int arr2[]= {4,2,5,1,3,7};
+  int n = sizeof(arr1)/sizeof(arr1[0]);
+  node *root;
+  
+  root = construct_tree(arr1, arr2, n);
+  print_preorder(root);
+  cout<<endl;
+  print_inorder(root);
+  cout<<endl;
+}
+node * construct_tree2(int *inorder, int *postorder, int len)
+{
+  /*
+arr1 is inorder, arr2 is postorder, len is arr length
+arr2[len-1] is root node.
+find index in inorder, get left tree size and right tree size, 
+adjust arr1 and arr2, then recurse
+   */  
+  node *root;
+  int index, len1, len2;
+  if (len<=0)
+    return NULL;
+  root = new node(postorder[len-1]);
+
+  index = node_find(inorder, root->c, len);
+  len1 = index;
+  if (len1<=0)
+    root->left = NULL;
+  else
+    root->left = construct_tree2(inorder, postorder, len1);
+  len2 = len-index-1;
+  if (len2<=0)
+    root->right = NULL;
+  else
+    root->right = construct_tree2(inorder+index+1, postorder+len1, len2);
+  
+  return root;
+}
+void test_26()
+{
+  int arr1[]= {4,2,5,1,3,7}; //inorder
+  int arr2[]= {4,5,2,7,3,1}; //postorder
+  int n = sizeof(arr1)/sizeof(arr1[0]);
+  node *root;
+  
+  root = construct_tree2(arr1, arr2, n);
+  print_postorder(root);
+  cout<<endl;
+  print_inorder(root);
+  cout<<endl;
+}
+#if 0
+template <class T> struct my_comp {
+  bool operator() (const T& x, const T& y) const {return strcmp(x, y);}
+};
+#endif
+#if 0
+struct my_comp {
+  bool operator() (const char * x, const char * y) const {
+    //printf(" cmp %s %s\n", x,y);
+    return strcmp(x,y);};
+};
+#endif
+//why char * not work?
+void sort_words()
+{
+  char *fn= "controls.xml";
+  FILE *fp = fopen(fn,"r");
+  char buf[1024] = {0};
+  multimap<string, int> mm;
+  multimap<int, string, greater<int>> mm2;
+  if (!fp)
+    return;
+  int num=0;
+  while (fgets(buf, sizeof(buf)-1, fp)) {
+    char *str;
+    string word;
+    for (str = strtok(buf, " \n\t"); str; str=strtok(NULL, " \n\t")) {
+        word = string(str);
+        mm.insert(pair<string, int>(word, num));
+    }
+
+    memset(buf, 0, sizeof(buf));
+  }
+  printf("%lu num %d\n", mm.size(), num);
+  int i=0;
+  printf("dz %d\n", mm.count("a"));
+  for (auto p=mm.begin(); p!=mm.end() ; ++p ) {
+    int n = mm.count((*p).first);
+    mm2.insert({n, (*p).first});
+    //cout<< (*p).first << " "<< mm.count((*p).first)<<endl;
+    //printf("%s %lu\n", (*p).first, mm.count((*p).first));
+  }
+  for (auto p=mm2.begin(); p!=mm2.end() && i<10; ++p, ++i ) {
+    cout<< (*p).first<< " "<< (*p).second<<endl;
+  }
+}
+
+void test_27()
+{
+  sort_words();
+}
 
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
@@ -929,5 +1177,6 @@ void test16()
 int main()
 {
   //test3();
-  test_23();
+  //test_26();
+  sort_words();
 }
