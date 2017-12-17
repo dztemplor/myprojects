@@ -1390,7 +1390,7 @@ void test_29()
                                {0,0,0,0,8,0,0,7,9}};
   
   resolve_sudoku2(board) ;
-  print_sudoku(board);
+  print_sudoku(board); 
 
 }
 #if 0
