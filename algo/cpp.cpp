@@ -1184,7 +1184,7 @@ use set, when add a new word, c
   multimap<int, string, greater<int>> mm2;
   if (!fp)
     return;
-  int num=0;
+
   while (fgets(buf, sizeof(buf)-1, fp)) {
     char *str;
     string word;
@@ -1197,7 +1197,7 @@ use set, when add a new word, c
 
     memset(buf, 0, sizeof(buf));
   }
-  printf("%lu num %d\n", mm.size(), num);
+  printf("%lu \n", mm.size());
   int i=0;
   //printf("dz %d\n", mm.count("a"));
   for (auto p=mm.begin(); p!=mm.end()  ; i++, ++p ) {
@@ -1207,14 +1207,17 @@ use set, when add a new word, c
     //printf("%s %lu\n", (*p).first, mm.count((*p).first));
   }
   i = 0;
+#if 0
   for (auto p=mm2.begin(); p!=mm2.end() && i<50; i++, ++p)
     cout<< p->first << " " << p->second <<endl; 
+#endif;
   //sort(mm.begin(), mm.end());
 }
 
 void test_27()
 {
-  sort_words();
+  //  for (int i=0; i<10; i++)
+    sort_words();
 }
 bool sudoku_valid(vector<vector<int> >&board, int i, int j)
 {
@@ -1434,6 +1437,6 @@ void test16()
 int main()
 {
   //test3();
-  test_29();
+  test_27();
   //sort_words();
 }
