@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sstream>
 
+
 #include <string>
 
 using namespace std;
@@ -1084,6 +1085,74 @@ void test_26()
   print_inorder(root);
   cout<<endl;
 }
+int find_in_level(int *inorder, int *level, int len)
+{
+  /*
+for each item in inorder, find pos in level, 
+return the first pos in level.
+*/
+  int i,j, m=10000;
+  for (i=0; i<len; i++) {
+    for (j=0; ; j++) {
+      if (inorder[i] == level[j]) {
+        m = min(m, j);
+        break;
+      }
+    }
+  }
+  return m;
+}
+node * construct_tree3(int *inorder, int *level, int len, int first)
+{
+  /*
+first is tell the root is at level[0]
+if not first, find all items in inorder in level, the first one is root.
+after get root, find it in inorder, get index, 
+then recurse, inorder split to 2 parts, level need proceed one. len only works on inorder
+*/
+  node *root;
+  int index, index2, len1, len2;
+  if (first) {
+    root= new node(level[0]);
+    index2 = 0;
+    first = 1;
+  }
+  else {
+    index2 = find_in_level(inorder, level, len);
+    root = new node(level[index2]);
+  }
+  index = node_find(inorder, root->c, len);
+  
+  len1 = index;
+  if (len1<=0)
+    root->left = NULL;
+  else
+    root->left = construct_tree3(inorder, level+index2+1, len1, 0);
+
+  len2 = len-index-1;
+  if (len2<=0)
+    root->right = NULL;
+  else
+    root->right = construct_tree3(inorder+index+1, level+index2+1, len2, 0);
+
+
+  return root;
+}
+void test_28()
+{
+  int arr1[]= {4,2,5,1,3,7}; //inorder
+  int arr2[]= {1,2,3,4,5,7}; //levelorder
+  int n = sizeof(arr1)/sizeof(arr1[0]);
+  node *root;
+  
+  root = construct_tree3(arr1, arr2, n, 1);
+  print_postorder(root);
+  cout<<endl;
+  print_inorder(root);
+  cout<<endl;  
+  unordered_map<char, int> m;
+  cout<< sizeof(m) <<"dz" <<endl;
+}
 #if 0
 template <class T> struct my_comp {
   bool operator() (const T& x, const T& y) const {return strcmp(x, y);}
@@ -1096,13 +1165,22 @@ struct my_comp {
     return strcmp(x,y);};
 };
 #endif
+struct word {
+  string str;
+  int num;
+  word(char * in):num(0) {str = string(in);};
+  
+};
 //why char * not work?
 void sort_words()
 {
+  /*
+use set, when add a new word, c
+*/
   char *fn= "controls.xml";
   FILE *fp = fopen(fn,"r");
   char buf[1024] = {0};
-  multimap<string, int> mm;
+  map<string, int> mm;
   multimap<int, string, greater<int>> mm2;
   if (!fp)
     return;
@@ -1112,30 +1190,209 @@ void sort_words()
     string word;
     for (str = strtok(buf, " \n\t"); str; str=strtok(NULL, " \n\t")) {
         word = string(str);
-        mm.insert(pair<string, int>(word, num));
+        auto ret = mm.insert(pair<string, int>(word, 1));
+        if (!ret.second) 
+          ++ret.first->second;
     }
 
     memset(buf, 0, sizeof(buf));
   }
   printf("%lu num %d\n", mm.size(), num);
   int i=0;
-  printf("dz %d\n", mm.count("a"));
-  for (auto p=mm.begin(); p!=mm.end() ; ++p ) {
-    int n = mm.count((*p).first);
-    mm2.insert({n, (*p).first});
+  //printf("dz %d\n", mm.count("a"));
+  for (auto p=mm.begin(); p!=mm.end()  ; i++, ++p ) {
+    //cout<< p->first <<" "<< p->second <<endl;
+    mm2.insert({p->second, p->first});
     //cout<< (*p).first << " "<< mm.count((*p).first)<<endl;
     //printf("%s %lu\n", (*p).first, mm.count((*p).first));
   }
-  for (auto p=mm2.begin(); p!=mm2.end() && i<10; ++p, ++i ) {
-    cout<< (*p).first<< " "<< (*p).second<<endl;
-  }
+  i = 0;
+  for (auto p=mm2.begin(); p!=mm2.end() && i<50; i++, ++p)
+    cout<< p->first << " " << p->second <<endl; 
+  //sort(mm.begin(), mm.end());
 }
 
 void test_27()
 {
   sort_words();
 }
+bool sudoku_valid(vector<vector<int> >&board, int i, int j)
+{
+  /*
+board[i][j] is newly added, valid if all below meets:
+ row no repeat
+ column no repeat
+ 3*3 square no repeat
+*/
+  int s1, s2;
+  for (int k=0; k<9; k++) {
+    if (k!=j && board[i][k] == board[i][j])
+      return false;
+  }
+  for (int k=0; k<9; k++) 
+    if (k!=i && board[k][j] == board[i][j])
+      return false;
+  s1= i/3*3;
+  s2= j/3*3;
+  for (int k1=s1; k1<3+s1; k1++)
+    for (int k2=s2; k2<3+s2; k2++)
+      if ( (k1!=i || k2!=j) && board[k1][k2]==board[i][j])
+        return false;
+ 
+  return true;
+}
+bool resolve_sudoku(vector<vector<int> >&board)
+{
+  /*recursive, 
+for each empty node, try it and recurse .*/
+  for (int i=0; i<9; i++)
+    for (int j=0; j<9; j++){
+      if (board[i][j])
+        continue;
 
+      for (int k=1; k<=9; k++) {
+        board[i][j] = k;
+        if (sudoku_valid(board, i, j) && resolve_sudoku(board))
+          return true;
+        board[i][j]= 0;
+      }
+      return false;
+    }
+  return true;
+}
+struct sudoku_step {
+  int i,j,val;
+  sudoku_step(int i=0, int j=0, int val=0):i(i),j(j),val(val) {};
+};
+void find_next_pos(vector<vector<int> >&board, int &nexti, int &nextj)
+{
+  int i,j;
+  for (i=0; i<9; i++) {
+    for (j=0; j<9; j++)
+      if (!board[i][j])
+        break;
+      if (j<9)
+        break;
+  }
+  nexti = i;
+  nextj = j;
+}
+bool resolve_sudoku2(vector<vector<int> >&board)
+{
+  /*non recursive,
+maintain stack<sudoku_step>
+each time finds a possible step, stack push
+each time all tries failed, recover board, pop the stack and retry next val
+  if the poped item has no next val, recover board, and pop again.
+loop until stack size is (empty_node.size),
+how to detect no solution?
+
+*/
+  int empty_size = 0;
+  for (int i=0; i<9; i++)
+    for (int j=0; j<9; j++)
+      if (!board[i][j])
+        empty_size++;
+  
+  stack<sudoku_step> s;
+  sudoku_step step, last;
+  int time=0, revert=0;
+  {
+  int i,j;
+  for (i=0; i<9; i++) {
+    for (j=0; j<9; j++)
+      if (!board[i][j])
+        break;
+      if (j<9)
+        break;
+  }
+  sudoku_step step(i,j);
+  s.push(step);
+  } 
+  //todo: i,j can start from s.top(); k starts from last's val
+  /*
+  if revert,stay on top item, and val++
+  else, find next empty item.
+*/ 
+ while (s.size()!= empty_size) {
+    int i,j,k;
+    sudoku_step last = s.top();
+
+    
+    i= last.i; 
+    j=last.j;
+    
+    int valid=0;
+    for (k=last.val+1; k<=9; k++) {
+      board[i][j] = k;
+      if (sudoku_valid(board, i, j)) {
+        
+        sudoku_step &step = s.top();
+        step.val = k;
+        //s.push(step);//?
+        valid =1;
+        //printf("step %d %d %d\n", i,j,k);
+        break;
+      }
+    }
+    if (!valid) { 
+      if (!s.size())
+        return false;
+      last = s.top();
+      board[last.i][last.j] = 0;
+      s.pop();
+    }
+    else {
+      int nexti, nextj;
+      find_next_pos(board, nexti, nextj);
+      sudoku_step step(nexti, nextj);
+      s.push(step);
+    }
+
+    last = s.top();
+    //printf("last %d %d %d\n", last.i, last.j, last.val);
+  }
+ 
+  return true;
+}
+
+void print_sudoku(vector<vector<int> >&board)
+{
+  for (int i=0; i<9; i++) {
+    for (int j=0; j<9; j++)
+      printf("%d ", board[i][j]);
+    printf("\n");
+  }
+  printf("\n");
+}
+void test_29()
+{
+  vector<vector<int> >board = {{5,3,0,0,7,0,0,0,0},
+                               {6,0,0,1,9,5,0,0,0},
+                               {0,9,8,0,0,0,0,6,0},
+                               {8,0,0,0,6,0,0,0,3},
+                               {4,0,0,8,0,3,0,0,1},
+                               {7,0,0,0,2,0,0,0,6},
+                               {0,6,0,0,0,0,2,8,0},
+                               {0,0,0,4,1,9,0,0,5},
+                               {0,0,0,0,8,0,0,7,9}};
+  
+  resolve_sudoku(board) ;
+  print_sudoku(board);
+  board = {{5,3,0,0,7,0,0,0,0},
+                               {6,0,0,1,9,5,0,0,0},
+                               {0,9,8,0,0,0,0,6,0},
+                               {8,0,0,0,6,0,0,0,3},
+                               {4,0,0,8,0,3,0,0,1},
+                               {7,0,0,0,2,0,0,0,6},
+                               {0,6,0,0,0,0,2,8,0},
+                               {0,0,0,4,1,9,0,0,5},
+                               {0,0,0,0,8,0,0,7,9}};
+  
+  resolve_sudoku2(board) ;
+  print_sudoku(board);
+
+}
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
 {
@@ -1177,6 +1434,6 @@ void test16()
 int main()
 {
   //test3();
-  //test_26();
-  sort_words();
+  test_29();
+  //sort_words();
 }
