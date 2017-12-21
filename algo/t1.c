@@ -946,7 +946,7 @@ void test_4()
 
 struct node2 {
     int c;
-    struct node2 *next;
+     struct node2 *next, *prev;
 };
 
 struct node2* init_list(int *arr, int len)
@@ -2048,6 +2048,176 @@ void test_33()
     quick_sort(arr, len);
     print_arr(arr, len);
 }
+
+//double list
+struct dnode {
+     struct dnode *prev, *next;
+     int c;
+};
+
+
+struct dnode * dlist_init(int *arr, int len)
+{
+/*
+head contains no data, insert arr[i] to tail.
+*/
+     struct dnode *head;
+     head = calloc(1, sizeof(*head));
+     head->prev = head->next = head;
+     int i;
+     for (i=0; i<len; i++) {
+          struct dnode *n;
+          n = calloc(1, sizeof(*n));
+          n->c = arr[i];
+          n->next = head;
+          n->prev = head->prev;
+          head->prev->next = n;
+          head->prev = n;
+     }
+
+     return head;
+}
+void print_dlist(struct dnode *l)
+{
+     struct dnode *p;
+     if (!l)
+          return;
+     for (p=l->next; p && p!=l; p=p->next)
+          printf("%d ", p->c);
+     printf("\n");
+     
+}
+struct dnode * reverse_dlist(struct dnode *l)
+{
+     struct dnode *p, *p2;
+     struct dnode *l2;
+     l2 = calloc(1, sizeof(*l2));
+     l2->prev = l2->next = l2;
+     if (!l)
+          return;
+     for(p=l->next; p&& p!=l; p=p2) {
+          p2 = p->next;
+          p->next = l2->next;
+          p->prev = l2;
+          l2->next->prev = p;
+          l2->next = p;
+     }
+     return l2;
+}
+void test_34()
+{
+     int arr[] = {1,2,3,4,5};
+     int n = sizeof(arr)/sizeof(arr[0]);
+     struct dnode *l, *l2;
+     l = dlist_init(arr, n);
+     print_dlist(l);
+     l2 = reverse_dlist(l);
+     print_dlist(l2);
+}
+struct node2 * adjust_list(struct node2 *l, int pivot)
+{
+/*
+list nodes rearranged based on pivot. 
+left <pivot ; mid == pivot; right >pivot
+node2 *left, *right, *mid
+left = right = mid = l2.next
+new list node2 l2;
+for each node in l,
+   if node <pivot, put it after left, left = node, if (righ, mid )== left, right=mid=left
+   if node > pivot, put it after right, 
+   if node==pivot, put it after mid, mid = node, if mid==right, righ=node
+*/
+     struct node2 *left, *right, *mid, *next, *p;
+     struct node2 l2;
+     l2.next = NULL;
+     left = right = mid = &l2;
+     for (p=l; p; p=next) {
+          next = p->next;
+          if (p->c <pivot) {
+               p->next = left->next;
+               left->next =p;
+               if (right == left) 
+                    right = p;
+               if (mid == left)
+                    mid = p;
+               left = p;
+          }
+          else if (p->c > pivot) {
+               p->next = right->next;
+               right->next = p;
+               right = p;
+          }
+          else  {
+               p->next = mid->next;
+               mid->next = p;
+               if (mid == right)
+                    right = p;
+               mid = p;
+          }
+     }
+     return l2.next;
+}
+
+void test_35()
+{
+     int arr1[]= {1,0,4,3,5,9};
+    int n= sizeof(arr1)/sizeof(int);
+    struct node2 *l1, *l2;
+    l1= init_list(arr1, n);
+    l2 = adjust_list(l1, 3);
+    print_list(l2);
+
+
+}
+struct node2 * list_cross(struct node2 *l1, struct node2 *l2)
+{
+     int len1=1, len2=1, len=0;
+     struct node2 *p1, *p2;
+     for (p1= l1; p1->next; p1=p1->next)
+          len1++;
+     
+     for (p2= l2; p2->next; p2=p2->next)
+          len2++;
+     
+     if (p1 != p2)
+          return NULL;
+
+     p1 = (len1>len2)? l1:l2;
+     p2 = (len1>len2)? l2:l1;
+/* let len1 go len1-len2; then go until p1==p2
+*/          
+     for (len=0; p1 &&len<len1-len2; p1=p1->next, len++)
+          ;
+     for (; p1 &&p2 && p1!=p2; p1=p1->next, p2=p2->next)
+          ;
+     return p1;
+}
+
+void test_36()
+{
+     int arr1[]= {1,0,4,3,5,9};
+    int n= sizeof(arr1)/sizeof(int);
+    struct node2 *l1, *l2, *p;
+    l1= init_list(arr1, n);
+    l2= init_list(arr1, n);
+    p = list_cross(l1, l2);
+    
+
+
+}
+
+
+void test_37()
+{
+#if 0
+     int arr1[]= {6,4,7,2,5,-1,9};
+    int n= sizeof(arr1)/sizeof(int);
+    struct node2 *l1, *l2, *p;
+    l1= init_list(arr1, n);
+    l2= init_list(arr1, n);
+    p = list_cross(l1, l2);
+#endif
+}
 int main()
 {
 #if 0    
@@ -2214,5 +2384,5 @@ int main()
 	//test_2();
 	//test_3();
         //test_4();
-        //test_34();
+        test_35();
 }

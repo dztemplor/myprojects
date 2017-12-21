@@ -1396,6 +1396,70 @@ void test_29()
   print_sudoku(board); 
 
 }
+
+int get_remove(stack<int>  &s)
+{
+  int result = s.top();
+  s.pop();
+  if (s.empty())
+    return result;
+  else {
+    int last= get_remove(s);
+    s.push(result);
+    return last;
+  }
+    
+}
+
+void stack_reverse(stack<int> &s)
+{
+  if (s.empty())
+    return;
+  int i = get_remove(s);
+  stack_reverse(s);
+  s.push(i);
+}
+void test_30()
+{
+  stack<int> s;
+  s.push(3);
+  s.push(2);
+  s.push(1);
+  stack_reverse(s);
+  while (!s.empty()) {
+    cout<<s.top() <<" ";
+    s.pop();
+  }
+  cout<<endl;
+}
+struct node2 {
+  int c;
+  struct node2 *prev, *next;
+};
+node2 * tree2list(node *root, node2 *&l)
+{
+  /*
+root is BST.
+recurse root inorder, put each node at l's tail
+*/
+}
+void print_list(node )
+{
+}
+
+void test_31()
+{
+  int arr[]= {6,4,7,2,5,-1,9};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root;
+  node2 *l, *tmp;
+  root = init_tree2(arr, n, 0);
+  l = tree2list(root);
+
+  cout<<endl;
+}
+
+
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
 {
@@ -1437,6 +1501,6 @@ void test16()
 int main()
 {
   //test3();
-  test_27();
+  test_30();
   //sort_words();
 }

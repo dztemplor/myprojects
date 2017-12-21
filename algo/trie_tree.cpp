@@ -20,11 +20,11 @@ const int ALPHABET_SIZE = 128;
 // trie node
 struct TrieNode
 {
-    struct TrieNode *children[ALPHABET_SIZE];
-
-    // isEndOfWord is true if the node represents
-    // end of a word
-    bool isEndOfWord;
+  struct TrieNode *children[ALPHABET_SIZE];
+  
+  // isEndOfWord is true if the node represents
+  // end of a word
+  bool isEndOfWord;
   int num;
   static int count;
   TrieNode():num(0) {
