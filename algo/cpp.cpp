@@ -8,6 +8,7 @@
 #include <map>
 #include <string.h>
 #include <sstream>
+ #include <unistd.h>
 
 
 #include <string>
@@ -1211,7 +1212,7 @@ use set, when add a new word, c
 #if 0
   for (auto p=mm2.begin(); p!=mm2.end() && i<50; i++, ++p)
     cout<< p->first << " " << p->second <<endl; 
-#endif;
+#endif
   //sort(mm.begin(), mm.end());
 }
 
@@ -1436,16 +1437,38 @@ void test_30()
 struct node2 {
   int c;
   struct node2 *prev, *next;
+  node2(int c=0):c(c),prev(NULL),next(NULL) {};
 };
-node2 * tree2list(node *root, node2 *&l)
+void tree2list(node *root, node2 * &l)
 {
   /*
 root is BST.
 recurse root inorder, put each node at l's tail
 */
+  if (!root)
+    return;
+  tree2list(root->left, l);
+  struct node2 *n = new node2(root->c);
+  l->next = n;
+  n->prev = l;
+  l = l->next;
+
+  tree2list(root->right, l);
 }
-void print_list(node )
+void print_list(node2 *l)
 {
+  node2 *p;
+  for (p=l; p->next; p=p->next)
+    cout<< p->c <<" ";
+  cout<<p->c << " ";
+  cout<<endl;
+  
+  cout<< "reverse"<<endl;
+  for (; p!=l; p=p->prev)
+    cout<<p->c<< " ";
+  cout<<p->c <<" ";
+  cout<<endl;
+  
 }
 
 void test_31()
@@ -1453,11 +1476,13 @@ void test_31()
   int arr[]= {6,4,7,2,5,-1,9};
   int n = sizeof(arr)/sizeof(arr[0]);
   node *root;
-  node2 *l, *tmp;
+  node2 *l, *tmp, *l2;
   root = init_tree2(arr, n, 0);
-  l = tree2list(root);
 
-  cout<<endl;
+  l = new node2(0);
+  l2 = l;
+  tree2list(root, l);
+  print_list(l2->next);
 }
 
 
@@ -1492,14 +1517,14 @@ void sort_words2()
     cout<< v[i]<<endl;
     //cout<< p->first<<  " " <<p->second <<endl;
 }
-void test_28()
+void test_28_1()
 {
   sort_words2();
 }
 
 
 
-void test_29()
+void test_29_1()
 {
   int arr[]={2,4,5,1,3,8,1};
   priority_queue<int, vector<int> > q(arr, arr+6);
@@ -1560,7 +1585,7 @@ void morris_preorder(node *root)
   }
 }
 
-void test_30()
+void test_30_1()
 {
   int arr[]= {1,2,3,4,5,6,7};
   int n = sizeof(arr)/sizeof(arr[0]);
@@ -1574,6 +1599,16 @@ void test_30()
   cout<<endl;
 }
 
+void test_32()
+{
+  node2 l, *l2;
+  cout << &l <<" "<<l2<<endl;
+#if 1
+  node2 * &&p = &l; 
+  //p = l2;
+  cout << &l<<" " << p<< endl;
+#endif  
+}
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
 {
@@ -1615,6 +1650,6 @@ void test16()
 int main()
 {
   //test3();
-  test_30();
+  test_32();
   //sort_words();
 }
