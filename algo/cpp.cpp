@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <queue>
 #include <stack>
 #include <algorithm>
 #include <unordered_map>
@@ -1459,6 +1460,119 @@ void test_31()
   cout<<endl;
 }
 
+
+
+void sort_words2()
+{
+  char *fn= "controls.xml";
+  FILE *fp = fopen(fn,"r");
+  char buf[1024] = {0};
+  unordered_map<string, int> mm;
+  if (!fp)
+    return;
+  int num=0;
+  while (fgets(buf, sizeof(buf)-1, fp)) {
+    char *str;
+    string word;
+    for (str = strtok(buf, " \n\t"); str; str=strtok(NULL, " \n\t")) {
+        word = string(str);
+        ++mm[word];
+        //mm.insert(pair<string, int>(word, num));
+    }
+
+    memset(buf, 0, sizeof(buf));
+  }
+  vector<int> v;
+  printf("%lu num %d\n", mm.size(), num);
+  int i=0;
+  for (auto p=mm.begin(); p!=mm.end() ;  ++p)
+    v.push_back(p->second);
+  sort(v.begin(), v.end(), greater<int>());
+  for (i=0; i<10; i++)
+    cout<< v[i]<<endl;
+    //cout<< p->first<<  " " <<p->second <<endl;
+}
+void test_28()
+{
+  sort_words2();
+}
+
+
+
+void test_29()
+{
+  int arr[]={2,4,5,1,3,8,1};
+  priority_queue<int, vector<int> > q(arr, arr+6);
+  while (!q.empty()) {
+    cout<< q.top()<<" ";
+    q.pop();
+  }
+  cout<<endl;
+}
+
+void morris_inorder(node *root)
+{
+  node *cur=root;
+  while (cur) {
+    if (!cur->left) {
+      cout<< cur->c <<" ";
+      cur= cur->right;
+    }
+    else {
+      node *n = cur->left;
+      while (n->right && n->right!=cur)
+        n = n->right;
+      if (!n->right) {
+        n->right = cur;
+        cur= cur->left;
+      }
+      else {
+        cout<<cur->c <<" ";
+        n->right = NULL;
+        cur = cur->right;
+      }
+    }
+  }
+}
+                   
+void morris_preorder(node *root)
+{
+  node *cur=root;
+  while (cur) {
+    if (!cur->left) {
+       cout<< cur->c <<", ";
+      cur= cur->right;
+    }
+    else {
+      node *n = cur->left;
+      while (n->right && n->right!=cur)
+        n = n->right;
+      if (!n->right) {
+        cout<<cur->c<< ": ";
+        n->right = cur;
+        cur= cur->left;
+      }
+      else {
+        n->right = NULL;
+        cur = cur->right;
+      }
+    }
+  }
+}
+
+void test_30()
+{
+  int arr[]= {1,2,3,4,5,6,7};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root;
+  
+  root = init_tree2(arr, n, 0);
+  //tree_preorder(root);
+  morris_inorder(root);
+  cout<<endl;
+  morris_preorder(root);
+  cout<<endl;
+}
 
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
