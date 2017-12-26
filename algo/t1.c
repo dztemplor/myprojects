@@ -586,7 +586,7 @@ void tree_print1(struct _node *root)
     if (!root) {
         return;
     }
-    printf("%d\n", root->c);
+    printf("%d ", root->c);
     tree_print1(root->left);
     tree_print1(root->right);
 }
@@ -2205,18 +2205,52 @@ void test_36()
 
 
 }
+typedef struct _node node2;
+node2 * tree_build2(char *str, int *len)
+{
+/*
+str is preorder
+if str[0] is #!, return NULL, len=2
+else 
+  call recursively for node->left, str increase with len
+  call for node->right, udpate len
+*/    
+    node2 *root;
+    char *p;
+    int sublen = 0;
+    if (!str || !str[0]) {
+        *len = 0;
+        return NULL;
+    }
+    if (!strncmp(str, "#!", 2))  {
+        *len =2;
+        return NULL;
+    }
+    root = calloc(1, sizeof(*root));
+    root->c = atoi(str);
 
+    p=str;
+    //todo, if root->c >9 ? hehe
+    p+= 2;
+    *len = 2;
+    root->left = tree_build2(p, &sublen);
+    p+=sublen;
+    *len += sublen;
+    root->right = tree_build2(p, &sublen);
+    *len += sublen;
+
+    return root;
+}
 
 void test_37()
 {
-#if 0
-     int arr1[]= {6,4,7,2,5,-1,9};
-    int n= sizeof(arr1)/sizeof(int);
-    struct node2 *l1, *l2, *p;
-    l1= init_list(arr1, n);
-    l2= init_list(arr1, n);
-    p = list_cross(l1, l2);
-#endif
+    char str[] = "1!2!4!#!#!#!3!#!5!#!#!";
+    node2 * t;
+    int len=0;
+    t= tree_build2(str, &len);
+    
+    tree_print1(t);
+    printf("\n");
 }
 int main()
 {
@@ -2384,5 +2418,5 @@ int main()
 	//test_2();
 	//test_3();
         //test_4();
-        test_35();
+        test_37();
 }

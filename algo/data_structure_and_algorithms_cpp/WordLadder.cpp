@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <queue>
 #include <algorithm>
 #include <ctime>
@@ -169,6 +170,56 @@ computeAdjacentWords( const vector<string> & words )
     return adjWords;
 }
 
+unordered_map<string,vector<string> >
+computeAdjacentWords2( const vector<string> & words )
+{
+  unordered_map<string,vector<string> > adjWords;
+    unordered_map<int,vector<string> > wordsByLength;
+
+      // Group the words by their length
+    for( auto & str : words )
+        wordsByLength[ str.length( ) ].push_back( str );
+
+      // Work on each group separately
+    for( auto & entry : wordsByLength )
+    {
+        const vector<string> & groupsWords = entry.second;
+        int groupNum = entry.first;
+
+        // Work on each position in each group
+        for( int i = 0; i < groupNum; ++i )
+        {
+            // Remove one character in specified position, computing representative.
+            // Words with same representatives are adjacent; so first populate a map...
+            unordered_map<string,vector<string>> repToWord;
+
+            for( auto & str : groupsWords )
+            {
+                string rep = str;
+                rep.erase( i, 1 );
+                repToWord[ rep ].push_back( str );
+            }
+
+            // and then look for map values with more than one string
+            for( auto & entry : repToWord )
+            {
+                const vector<string> & clique = entry.second;
+                if( clique.size( ) >= 2 )
+                {
+                    for( int p = 0; p < clique.size( ); ++p )
+                        for( int q = p + 1; q < clique.size( ); ++q )
+                        {
+                            adjWords[ clique[ p ] ].push_back( clique[ q ] );
+                            adjWords[ clique[ q ] ].push_back( clique[ p ] );
+                        }
+                }
+            }
+        }
+    }
+
+    return adjWords;
+}
+
 // Find most changeable word: the word that differs in only one
 // character with the most words. Return a list of these words, in case of a tie.
 vector<string>
@@ -209,6 +260,23 @@ void printMostChangeables( const vector<string> & mostChangeable,
 }
 
 void printHighChangeables( const map<string,vector<string>> & adjacentWords,
+                           int minWords = 15 )
+{
+    for( auto & entry : adjacentWords )
+    {
+        const vector<string> & words = entry.second;
+
+        if( words.size( ) >= minWords )
+        {
+            cout << entry.first << " (" << words.size( ) << "):";
+            for( auto & str : words )
+                cout << " " << str;
+            cout << endl;
+        }
+    }
+}
+
+void printHighChangeables2( const unordered_map<string,vector<string>> & adjacentWords,
                            int minWords = 15 )
 {
     for( auto & entry : adjacentWords )
@@ -296,15 +364,25 @@ int main( )
     vector<string> words = readWords( fin );
     cout << "Read the words..." << words.size( ) << endl;
     map<string,vector<string> > adjacentWords;
+    unordered_map<string,vector<string> > adjacentWords2;
+
+    start = clock( );
+    adjacentWords2 = computeAdjacentWords2( words );
+    end = clock( );
+    cout << "Elapsed time even FAST: " << double(end-start)/CLOCKS_PER_SEC << endl;
+
+    //printHighChangeables2( adjacentWords2, 15 );
+
     
     start = clock( );
     adjacentWords = computeAdjacentWords( words );
     end = clock( );
     cout << "Elapsed time FAST: " << double(end-start)/CLOCKS_PER_SEC << endl;
 
-    printHighChangeables( adjacentWords, 15 );
+    //printHighChangeables( adjacentWords, 15 );
 
-    /*
+    
+#if 0
     start = clock( );
     adjacentWords = computeAdjacentWordsMedium( words );
     end = clock( );
@@ -320,7 +398,7 @@ int main( )
     vector<string> mostChangeable = findMostChangeable( adjacentWords );
     cout << "Most changeable computed..." << endl;
     printMostChangeables( mostChangeable, adjacentWords );
-    */
+#endif    
 
     for( ; ; )
     {
