@@ -1609,6 +1609,56 @@ void test_32()
   cout << &l<<" " << p<< endl;
 #endif  
 }
+
+int get_sum(int *arr, int start, int end)
+{
+  int ret=0;
+  for (int i=start; i<=end; i++)
+    ret += arr[i];
+  return ret;
+}
+void find_sum(int *arr, int len, int k, vector<int>& v)
+{
+  /*
+int left, right, sum;
+left from 0 to len-1,
+  if right <left, right=left;
+  calc sum arr[left..right], 
+    if sum==k, update v, continue, 
+    if sum>k, continue
+    if sum<k, right++
+*/
+  int left=0, right=0, sum=0, sub_len;
+  for (; left<len; left++) {
+    //if (right<left)
+    right = left;
+    for (; (sum = get_sum(arr, left, right))<=k && right<len-1; right++ ) {
+      if (sum == k) {
+        sub_len = right+1-left;
+        if (sub_len>v.size()) {
+          v.clear();
+          for (int i=left; i<=right; i++)
+            v.push_back(arr[i]);
+          print_vec(v);
+        }
+#if 0        
+        else
+          printf("%d %d \n", arr[left], arr[right]);
+#endif        
+        break;
+      }
+    }
+  }
+}
+
+void test_33()
+{
+  int arr[] = {9,1,2,3,6,6,3,3,7,8,13};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  vector<int> v;
+  find_sum(arr, len, 12, v);
+  print_vec(v);
+}
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
 {
@@ -1650,6 +1700,6 @@ void test16()
 int main()
 {
   //test3();
-  test_32();
+  test_33();
   //sort_words();
 }
