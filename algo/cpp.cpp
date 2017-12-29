@@ -1659,6 +1659,68 @@ void test_33()
   find_sum(arr, len, 12, v);
   print_vec(v);
 }
+int get_index(int *arr, int len, int key)
+{
+  /*
+arr[0..end], find the first number >=key
+*/
+  int ret=-1, mid=0, start=0, end=len;
+
+  while(start<= end) {
+    mid = (start+end)/2;
+    if (arr[mid]>= key) {
+      ret = mid;
+      end = mid-1;
+    }
+    else {
+      start = mid+1;
+    }
+  }
+  return ret;
+}
+void find_sum2(int *arr, int len, int k, vector<int> &v)
+{
+  /*
+find consec subarray whose sum <=k
+sum_arr[len+1]: sum of arr[0..i] index is arr[-1..i-1]
+helper_arr[len+1]: adjust sum_arr[], the biggest sum with early index, sorted
+iterate arr, index is i.
+sum(j) >= sum(i)-k, find the earliest index of j, put arr[j+1..i] in v
+*/
+  int sum_arr[len+1], helper_arr[len+1];
+  int i, j;
+  sum_arr[0]=0;
+  for (i=1; i<len+1; i++)
+    sum_arr[i] = arr[i-1]+sum_arr[i-1];
+  helper_arr[0]=0;
+  for (i=1; i<len+1; i++)
+    helper_arr[i] = (sum_arr[i]>helper_arr[i-1])? sum_arr[i]:helper_arr[i-1];
+
+  for (i=0; i<len; i++) {
+    int sum, j, sublen;
+    sum = sum_arr[i+1]-k;
+    j = get_index(helper_arr, i+1, sum)-1;
+    if (j != -2) { //get_index() return -1 when can't find an index.
+      sublen = i-j;
+      if (sublen > v.size()) {
+        v.clear();
+        for (int i1=j+1; i1<=i; i1++)
+          v.push_back(arr[i1]);
+        //print_vec(v);
+      }
+    }
+  }
+}
+
+void test_34()
+{
+  int arr[] = {3,-2,-4,0,3,100,6,-2,-4,1,1,2,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  vector<int> v;
+  find_sum2(arr, len, -4, v);
+  print_vec(v);
+  
+}
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
 {
@@ -1700,6 +1762,6 @@ void test16()
 int main()
 {
   //test3();
-  test_33();
+  test_34();
   //sort_words();
 }
