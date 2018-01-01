@@ -1776,6 +1776,120 @@ void test_34()
   cout<<endl;
 }
 
+
+int get_sum(int *arr, int start, int end)
+{
+  int ret=0;
+  for (int i=start; i<=end; i++)
+    ret += arr[i];
+  return ret;
+}
+void find_sum(int *arr, int len, int k, vector<int>& v)
+{
+  /*
+int left, right, sum;
+left from 0 to len-1,
+  if right <left, right=left;
+  calc sum arr[left..right], 
+    if sum==k, update v, continue, 
+    if sum>k, continue
+    if sum<k, right++
+*/
+  int left=0, right=0, sum=0, sub_len;
+  for (; left<len; left++) {
+    //if (right<left)
+    right = left;
+    for (; (sum = get_sum(arr, left, right))<=k && right<len-1; right++ ) {
+      if (sum == k) {
+        sub_len = right+1-left;
+        if (sub_len>v.size()) {
+          v.clear();
+          for (int i=left; i<=right; i++)
+            v.push_back(arr[i]);
+          print_vec(v);
+        }
+#if 0        
+        else
+          printf("%d %d \n", arr[left], arr[right]);
+#endif        
+        break;
+      }
+    }
+  }
+}
+
+void test_33_2()
+{
+  int arr[] = {9,1,2,3,6,6,3,3,7,8,13};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  vector<int> v;
+  find_sum(arr, len, 12, v);
+  print_vec(v);
+}
+int get_index(int *arr, int len, int key)
+{
+  /*
+arr[0..end], find the first number >=key
+*/
+  int ret=-1, mid=0, start=0, end=len;
+
+  while(start<= end) {
+    mid = (start+end)/2;
+    if (arr[mid]>= key) {
+      ret = mid;
+      end = mid-1;
+    }
+    else {
+      start = mid+1;
+    }
+  }
+  return ret;
+}
+void find_sum2(int *arr, int len, int k, vector<int> &v)
+{
+  /*
+find consec subarray whose sum <=k
+sum_arr[len+1]: sum of arr[0..i] index is arr[-1..i-1]
+helper_arr[len+1]: adjust sum_arr[], the biggest sum with early index, sorted
+iterate arr, index is i.
+sum(j) >= sum(i)-k, find the earliest index of j, put arr[j+1..i] in v
+*/
+  int sum_arr[len+1], helper_arr[len+1];
+  int i, j;
+  sum_arr[0]=0;
+  for (i=1; i<len+1; i++)
+    sum_arr[i] = arr[i-1]+sum_arr[i-1];
+  helper_arr[0]=0;
+  for (i=1; i<len+1; i++)
+    helper_arr[i] = (sum_arr[i]>helper_arr[i-1])? sum_arr[i]:helper_arr[i-1];
+
+  for (i=0; i<len; i++) {
+    int sum, j, sublen;
+    sum = sum_arr[i+1]-k;
+    j = get_index(helper_arr, i+1, sum)-1;
+    if (j != -2) { //get_index() return -1 when can't find an index.
+      sublen = i-j;
+      if (sublen > v.size()) {
+        v.clear();
+        for (int i1=j+1; i1<=i; i1++)
+          v.push_back(arr[i1]);
+        //print_vec(v);
+      }
+    }
+  }
+}
+
+void test_34_2()
+{
+  int arr[] = {3,-2,-4,0,3,100,6,-2,-4,1,1,2,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  vector<int> v;
+  find_sum2(arr, len, -4, v);
+  print_vec(v);
+  
+}
+
+
 void find_long_consec(int *arr, int k, int len, unordered_map<int, int> &map, vector<int> &v)
 {
   /*
