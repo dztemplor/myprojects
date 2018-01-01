@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <map>
+#include <unordered_map>
 #include <string.h>
 #include <sstream>
  #include <unistd.h>
@@ -16,6 +17,7 @@
 using namespace std;
 void print_vec(vector<int> &v)
 {
+
   for (int i=0; i<v.size(); i++)
     cout<< v[i]<< " ";
   cout<<endl;
@@ -1033,6 +1035,11 @@ watch out len1 is 0 or len2 is 0
 
   return root;
 }
+
+node * init_tree3(int *preorder, int *inorder, int len)
+{
+  return construct_tree(preorder, inorder, len);
+}
 void test_25()
 {
   int arr1[]= {1,2,4,5,3,7};
@@ -1179,7 +1186,7 @@ void sort_words()
   /*
 use set, when add a new word, c
 */
-  char *fn= "controls.xml";
+  const char *fn= "controls.xml";
   FILE *fp = fopen(fn,"r");
   char buf[1024] = {0};
   map<string, int> mm;
@@ -1489,7 +1496,7 @@ void test_31()
 
 void sort_words2()
 {
-  char *fn= "controls.xml";
+  const char *fn= "controls.xml";
   FILE *fp = fopen(fn,"r");
   char buf[1024] = {0};
   unordered_map<string, int> mm;
@@ -1609,6 +1616,7 @@ void test_32()
   cout << &l<<" " << p<< endl;
 #endif  
 }
+<<<<<<< Updated upstream
 
 int get_sum(int *arr, int start, int end)
 {
@@ -1701,6 +1709,183 @@ sum(j) >= sum(i)-k, find the earliest index of j, put arr[j+1..i] in v
     sum = sum_arr[i+1]-k;
     j = get_index(helper_arr, i+1, sum)-1;
     if (j != -2) { //get_index() return -1 when can't find an index.
+=======
+void print_nodevec(vector<node *>v)
+{
+  for (int i=0; i<v.size(); i++)
+    printf("%d ", v[i]->c);
+  printf("\n");
+}
+void tree_find_bound(vector<node *>l_level, vector<node *>r_level, vector<int> &left, vector<int> &right)
+{
+  /*
+l_level and r_level contains left and right level nodes
+generate left: for each node in l_level, 
+   push leaf; if not leaf but is leftmost, push it
+generate right: for each node in r_level
+   push leaf; if not leaf but rightmost, push it
+*/
+  vector<node *> l_tmp, r_tmp;
+  
+  if (!l_level.size() && !r_level.size())
+    return;
+#if 1 
+  if (l_level.size() == 1 && r_level.size()==1 && l_level[0]==r_level[0]) {
+    node *root = l_level[0];
+    if (root->left) {
+      l_tmp.push_back(root->left);
+      left.push_back(root->left->c);
+    }
+    if (root->right) {
+      r_tmp.push_back(root->right);
+      right.push_back(root->right->c);
+    }
+    return tree_find_bound(l_tmp, r_tmp, left, right);
+  }
+#endif  
+
+  for (int i=0; i<l_level.size(); i++) {
+    node *p = l_level[i];
+    if (p->left)
+      l_tmp.push_back(p->left);
+    if (p->right)
+      l_tmp.push_back(p->right);
+  }
+
+
+  for (int i=0; i<l_tmp.size(); i++) {
+    node *p = l_tmp[i];
+    if (!i)
+      left.push_back(p->c);
+    else if (!p->left && !p->right)
+      left.push_back(p->c);
+  }
+
+  for (int i=0; i<r_level.size(); i++) {
+    node *p = r_level[i];
+    if (p->left)
+      r_tmp.push_back(p->left);
+    if (p->right)
+      r_tmp.push_back(p->right);
+  }
+  for (int i=0; i<r_tmp.size(); i++) {
+    node *p = r_tmp[i];
+    if (i == r_tmp.size()-1)
+      right.push_back(p->c);
+    else if (!p->left && !p->right)
+      right.push_back(p->c);
+  }
+
+  tree_find_bound(l_tmp, r_tmp, left, right);
+}
+void print_boundary(struct node *r)
+{
+  /*
+question page 95
+level traversal, vector<vector<int> >level
+vector<int> left_bound, vector<right>right_bound
+for each level, fill in left_bound and right_bound
+print left_bound in normal order, and right_bound in reverse order
+*/  
+  vector<node *>l_level, r_level;
+  vector<int>left_bound, right_bound;
+  if (!r)
+    return;
+#if 0
+  left_bound.push_back(r->left->c);
+  right_bound.push_back(r->right->c);
+  l_level.push_back(r->left);
+  r_level.push_back(r->right);
+#else
+  l_level.push_back(r);
+  r_level.push_back(r);
+#endif
+  
+  tree_find_bound(l_level, r_level, left_bound, right_bound);
+  print_vec(left_bound);
+  print_vec(right_bound);
+}
+void test_33()
+{
+  int arr1[] = {1,2,4,7,8,11,13,14,3,5,9,12,15,16,10,6};
+  int arr2[] = {2,7,4,8,13,11,14,1,15,12,16,9,5,10,3,6};
+  int n= sizeof(arr1)/sizeof(arr1[0]);
+  struct node *t;
+  t = init_tree3(arr1, arr2, n);
+#if 0
+  print_preorder(t);
+  cout<<endl;
+  print_inorder(t);
+#endif
+  print_boundary(t);
+}
+
+void build_tree(char *str, vector<node *>&v)
+{
+  /*
+for each node in v,
+  creat a new node from string, put_back to vector, step str forward 
+  assign node's left and right, note NULL condition.
+  ensure str is adjusted, and recurse
+*/
+  vector<node *>tmp;
+  node *n;
+  if (!str || !str[0])
+    return;
+  
+  for (int i=0; i<v.size(); i++) {
+    node *parent = v[i];
+    if (!strncmp(str, "#!", 2)) {
+      parent->left = NULL;
+    }
+    else {
+      n = new node(atoi(str));
+      parent->left = n;
+      tmp.push_back(n);
+    }
+    str+=2;
+    if (!strncmp(str, "#!", 2)) {
+      parent->right = NULL;
+    }
+    else {
+      n = new node(atoi(str));
+      parent->right = n;
+      tmp.push_back(n);
+    }
+    str+= 2;
+  }
+  build_tree(str, tmp);
+}
+
+void test_34()
+{
+  char str[] = "1!2!3!4!#!#!5!#!#!#!#!";
+  node root(1);
+  vector<node *>v;
+  v.push_back(&root);
+  build_tree(str+2, v);
+  print_preorder(&root);
+  cout<<endl;
+  print_inorder(&root);
+  cout<<endl;
+}
+
+void find_long_consec(int *arr, int k, int len, unordered_map<int, int> &map, vector<int> &v)
+{
+  /*
+arr[j+1..i] is the consec we want, 
+map : key is sum, value is earlest index, or j
+iterate arr from 0.
+  get sum until i, check if sum-k is in map, 
+    if so check if len in bigger than v.size(), then update it
+  store sum in map   
+*/
+  int i,sum = 0, j, sublen;
+  for (i=0; i<len; i++) {
+    sum+= arr[i];
+    if (map.find(sum-k) != map.end()) {
+      j = map[sum-k];
+>>>>>>> Stashed changes
       sublen = i-j;
       if (sublen > v.size()) {
         v.clear();
@@ -1709,6 +1894,7 @@ sum(j) >= sum(i)-k, find the earliest index of j, put arr[j+1..i] in v
         //print_vec(v);
       }
     }
+<<<<<<< Updated upstream
   }
 }
 
@@ -1721,6 +1907,213 @@ void test_34()
   print_vec(v);
   
 }
+=======
+    map.insert({sum, i});
+  }
+}
+
+void test_35()
+{
+  int arr[] = {9,1,2,3,6,-6,3,2,1,3,3,8,-5,1,1,1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  unordered_map<int, int> map;
+  vector<int> v;
+  map[-1]=0;
+  find_long_consec(arr, 12, len, map, v);
+  print_vec(v);
+}
+#if 0
+void find_long_path(node *root, int k, vector<int> &v, vector<int> &result, int sum)
+{
+  /*
+find path which starts from root.
+sum is sum of all nodes along the path
+dfs until leaf, if sum == k, 
+  print v;
+  v.pop_back(); 
+ 
+*/
+  if (!root)
+    return;
+  v.push_back(root->c);
+  sum += root->c;
+  if (sum == k) {
+    print_vec(v);
+    if (v.size() > result.size()) {
+      result.clear();
+      for (auto ele:v)
+        result.push_back(ele);
+    
+    }
+  }
+  find_long_path(root->left, k, v, result, sum);
+  find_long_path(root->right, k, v, result, sum);
+  v.pop_back();
+}
+
+void find_path2(node *root, int k, vector<int> &v, vector<int> &result)
+{
+  /*
+preorder traversal each node,
+find_long_path() for each node, sum is 0.
+*/
+  if (!root)
+    return;
+  find_long_path(root, k, v, result, 0);
+  find_path2(root->left, k, v, result);
+  find_path2(root->right, k, v, result);
+}
+#endif
+void print_map(unordered_map<int, int> &map)
+{
+  printf("print_map: ");
+  for (auto i :map) {
+    printf("key, val %d %d", i.first, i.second);
+  } 
+  printf("\n");
+}
+int find_long_path(node *root, int k, int presum, int level, int maxlen, unordered_map<int, int> &map, 
+                   vector<node *> &v_node, vector<int> &path)
+{
+  /*
+for each node, put_back in v_node, before return, pop node
+when update maxlen, store v_node[j+1..i] to path
+*/
+  int level_min;
+  if (!root)
+    return maxlen;
+  int cursum = presum+ root->c;
+  v_node.push_back(root);
+  if (map.find(cursum) == map.end()) {
+    map[cursum] = level;
+    //printf("insert map %d %d\n", cursum, level);
+  }
+  auto it= map.find(cursum-k);
+  if (map.find(cursum- k) != map.end()) {
+    level_min = map[cursum-k];
+    if (level - level_min  > maxlen ) {
+      maxlen = level - level_min;
+      path.clear();
+      for (int i= level_min; i<= level-1; i++)
+        path.push_back(v_node[i]->c);
+      print_vec(path);
+    }
+  } 
+  maxlen = find_long_path(root->left, k ,cursum, level+1, maxlen, map, v_node, path);
+  maxlen = find_long_path(root->right, k, cursum, level+1, maxlen, map, v_node, path);
+  if (map.find(cursum) != map.end() && level == map[cursum])
+    map.erase(cursum);
+  
+  v_node.pop_back();
+  return maxlen;
+}
+
+int find_path(node *root, int k) 
+{
+  unordered_map<int, int> map;
+  map[0]=0;
+  vector<node *> v_node;
+  vector<int> path;
+
+  int ret= find_long_path(root, k, 0, 1, 0, map, v_node, path);
+  cout<<ret <<endl;
+}
+
+
+void test_36()
+{
+  int arr[]= {-3,3,9, 6,0, 2, 1, -1, -1, 2, 3, -2, -1, -1, -1};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root;
+  vector<int> v;
+  vector<int> v2;
+  
+  root = init_tree2(arr, n, 0);
+  //tree_preorder(root);
+  find_path(root, 6);
+  //find_path(root, 10);
+}
+struct bst {
+  int num;
+  node *root;
+  bst(int node_num=0, node *root=NULL):num(node_num), root(root) {};
+};
+static int g;
+bool find_max_bst(node *&root, int &node_num,  int &biggest, int &smallest, bst &sub)
+{
+  /*
+node_num: root's subtree node num
+biggest: root subtree's biggest num
+smallest: root subtree's smallest num
+sub: root's biggest bst
+return: true is root is bst
+
+update :
+node_num, left tree's node_num+ right tree's node_num +1
+biggest: max(root->c, left tree's biggest, right tree's biggest)
+smallest: min(root->c, left tree's smallest, right tree's smallest)
+
+
+dfs, if root->left and root->right are bst, 
+  and root->c > left tree's biggest and 
+  root->c < right tree's smallest. 
+  root is bst, if  node_num > sub.node_num, update sub to root 
+  if root->left is null, root is bst ; if root->right is null, root is bst.
+  
+recurse finish:
+  root is null: node_num 0
+*/
+  if (!root) {
+    node_num = 0;
+    return true;
+  }
+  biggest = smallest = root->c;
+  int num1, big1, small1;
+  int num2, big2, small2;
+  bool is_bst1, is_bst2;
+  is_bst1= find_max_bst(root->left, num1, big1, small1, sub);
+  is_bst2= find_max_bst(root->right, num2, big2, small2, sub);
+  
+
+  if (is_bst1 && is_bst2 && ( (!num1 || root->c > big1) 
+                              && (!num2 || root->c < small2)) ) {
+    if (num2)
+      biggest = big2;
+    if (num1)
+      smallest = small1;
+    node_num = num1+num2+1;
+    if (node_num > sub.num) {
+      sub.num = node_num;
+      sub.root = root;
+      printf("%d %d\n", node_num, root->c);
+    }
+    return true;
+  }
+  else
+    return false;
+}
+
+void test_37()
+{
+  int arr1[]= {0,1,3,6,2,4,5,10,11,14,15,12,16,13,20}; //inorder
+  int arr2[]= {6,1,12,0,3,10,13,4,14,16,20,2,5,11,15}; //levelorder
+  int n = sizeof(arr1)/sizeof(arr1[0]);
+  node *root;
+  
+  root = construct_tree3(arr1, arr2, n, 1);
+  print_preorder(root);
+  cout<<endl;
+  print_inorder(root);
+  cout<<endl;  
+  int node_num=0, is_bst=0, biggest= 0, smallest=0;
+  bst sub;
+  find_max_bst(root, node_num, biggest, smallest, sub);
+  //unordered_map<char, int> m;
+  //xcout<< sizeof(m) <<"dz" <<endl;
+  printf("g %d\n", g);
+}
+
+>>>>>>> Stashed changes
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
 {
@@ -1762,6 +2155,10 @@ void test16()
 int main()
 {
   //test3();
+<<<<<<< Updated upstream
   test_34();
+=======
+  test_37();
+>>>>>>> Stashed changes
   //sort_words();
 }

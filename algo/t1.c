@@ -2241,16 +2241,59 @@ else
 
     return root;
 }
+void find_list_mid(struct node2 *l)
+{
+/*
+p step is 1, p2 step is 2;
+iterate on l until p2 finishes.
+if l node is odd: p stop at mid (N/2)
+if l node is even: p stop at N/2-1
+how to judge list is even?
+  when break, if p2->next is NULL, list is odd; else it's even 
+print p and report if list is even
+*/
+     struct node2 *p, *p2;
+     if (!l)
+          return;
+     for (p=l,p2=l; p2->next && p2->next->next; p=p->next, p2=p2->next->next)
+          ;
+     if (!p2->next)
+          printf("list is odd\n");
+     else
+          printf("list is even\n");
+     printf("mid p %d\n", p->c);
 
-void test_37()
+}
+
+void _test_37(int *arr, int len)
+{
+    struct node2 *l1, *l2, *p;
+    l1= init_list(arr, len);
+    find_list_mid(l1);
+}
+
+void test_37_2()
 {
     char str[] = "1!2!4!#!#!#!3!#!5!#!#!";
     node2 * t;
     int len=0;
     t= tree_build2(str, &len);
-    
+
     tree_print1(t);
     printf("\n");
+
+}
+
+void test_37()
+{
+     int arr1[]= {1,2,3};
+    int n= sizeof(arr1)/sizeof(int);
+    _test_37(arr1, n);
+
+    int arr2[]= {1,2,3, 4};
+    n= sizeof(arr2)/sizeof(int);
+    _test_37(arr2, n);
+
 }
 int main()
 {
