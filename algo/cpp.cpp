@@ -2118,6 +2118,182 @@ void test_37()
   //xcout<< sizeof(m) <<"dz" <<endl;
   printf("g %d\n", g);
 }
+bool is_subtree2(node *root, node *root1)
+{
+  /* calc if root1 is subtree of root
+dfs for root,
+for each node, if node->c == root1->c and is_subtree(node->left, root1->left)
+  and is_subtree(node->right, root1->right)
+if !root1, return true.
+*/
+  if (!root1)
+    return true;
+  else if (!root)
+    return false;
+
+  return (root->c == root1->c && is_subtree2(root->left, root1->left) && is_subtree2(root->right, root1->right));
+  
+}
+bool is_subtree(node *root, node *root1)
+{
+  /*dfs*/
+  if (is_subtree2(root, root1))
+    return true;
+  if (!root)
+    return false;
+  return is_subtree(root->left, root1) || is_subtree(root->right, root1);
+  
+}
+
+void test_38()
+{
+  int arr[]= {1,2,3,4,5,6,7,8,9,10,-1,-1,-1,-1,-1};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root, *root1, *root2;
+  vector<int> v;
+  vector<int> v2;
+  
+  root = init_tree2(arr, n, 0);
+  int arr1[] = {2,4,5,8,-1,-1,-1};
+  n = sizeof(arr1)/sizeof(arr[0]);
+  root1 = init_tree2(arr1, n, 0);
+  int arr2[] = {2,4,5,9,-1,-1,-1};
+  root2 = init_tree2(arr2, n, 0);
+  
+  int ret;
+  ret= is_subtree(root, root1);
+  cout<<ret <<endl;
+  ret = is_subtree(root, root2);
+  cout<<ret <<endl;
+
+  //  tree_preorder(root);
+  //find_path(root, 6);
+
+}
+int find_first_bigger(int *arr, int len, int root)
+{
+  int i;
+  for (i=0; i<len-1 && arr[i]<root ;i++)
+    ;
+  return i;
+}
+
+bool post_is_bst(int *arr, int len)
+{
+  /*
+find the arr's left and right subtree and judge if they are bst.
+if len is 1 or 0, it's bst.
+else split arr to 2 parts, note left or right part can be length of 0
+how to find pivot?
+  the first element that > root is right part.
+  all right part should be > root
+if left and right both are bst, root is bst
+*/
+  int len1, len2, index=0, root;
+  if (!len || len ==1)
+    return true;
+  root = arr[len-1];
+  index  = find_first_bigger(arr, len, root);
+  len1 = index;
+  len2 = len-index-1;
+  for (int i=index; i<len-1; i++)
+    if (arr[i] < root)
+      return false;
+  return post_is_bst(arr, len1) && post_is_bst(arr+len1, len2);
+}
+
+void test_39()
+{
+  int arr1[] = {3,7,6,14,12,10};
+  int n = sizeof(arr1)/sizeof(arr1[0]);
+  cout << post_is_bst(arr1, n);
+  cout <<endl;
+  int arr2[] = {3,11,6,14,12,10};
+  n = sizeof(arr2)/sizeof(arr2[0]);
+  cout << post_is_bst(arr2, n);
+  cout <<endl; 
+  int arr3[]= {3,7,6,18,11,12,10};
+  n = sizeof(arr3)/sizeof(arr3[0]);
+  cout << post_is_bst(arr3, n);
+  cout <<endl;
+}
+
+void print_vec2(vector<node *> &v)
+{
+  for (auto n:v)
+    cout <<n->c <<" ";
+  cout<<endl;
+}
+
+bool is_complete(node *root )
+{
+  /*
+v contians nodes, 
+for each nodes, if
+  node->right exist, but left not, return false
+  node->right and node->left both exist, continue;
+  else 
+    all left nodes should be leaf nodes, otherwise return false.
+return true
+no need for recursive
+
+generate next level vector
+*/
+  vector<node *>v , v2;
+  int leaf_mode = 0;
+  if (root)
+    v.push_back(root);
+  while (v.size()) {
+    
+    for (int i=0; i<v.size(); i++) {
+       if (leaf_mode) {
+        if (v[i]->left || v[i]->right)
+          return false;
+      }
+      else {
+        if (v[i]->right && !v[i]->left)
+          return false;
+        else if (!v[i]->left || !v[i]->right) 
+          leaf_mode = 1;
+      }
+    }
+    v2.clear();
+    for (auto n: v) {
+      if (n->left)
+        v2.push_back(n->left);
+      if (n->right)
+        v2.push_back(n->right);
+    }
+    v.clear();
+    v = v2;
+    //print_vec2(v);
+  }
+  return true;
+}
+void test_40()
+{
+  int arr[]= {1,2,3,4,-1,-1,-1};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root, *root1, *root2;
+  vector<int> v;
+  vector<int> v2;
+  
+  root = init_tree2(arr, n, 0);
+  cout << is_complete(root) <<endl;
+
+  int arr1[] = {1,2,3,4,5,6,-1,7,8,-1,-1,-1,-1,-1,-1};
+  n = sizeof(arr1)/sizeof(arr1[0]);
+  root1 = init_tree2(arr1, n, 0);
+  //tree_inorder(root1);
+  //cout <<endl;
+  cout << is_complete(root1)<<endl;
+
+  int arr2[] = {1,2,3,4,-1,5,-1};
+  n = sizeof(arr2)/sizeof(arr2[0]);
+  root2 = init_tree2(arr2, n, 0);
+  cout << is_complete(root2) <<endl;
+
+}
 
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
@@ -2160,6 +2336,6 @@ void test16()
 int main()
 {
   //test3();
-  test_37();
+  test_40();
   //sort_words();
 }
