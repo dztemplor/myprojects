@@ -79,7 +79,7 @@ void test1()
   cout<< "strlen"<< strlen(str)<<endl;
 }
 struct node {
-  struct node *left, *right, *next;
+  struct node *left, *right, *next, *parent;
   int c;
   node(int c=0): c(c) {};
 };
@@ -145,10 +145,14 @@ node * init_tree2(int *arr, int len, int index)
   
   if (2*index+1<len) {
     root->left = init_tree2(arr, len, 2*index+1);
+    if (root->left)
+      root->left->parent = root;
   }
-  if (2*index+2<len)
+  if (2*index+2<len) {
     root->right = init_tree2(arr, len, 2*index+2);
-  
+    if (root->right)
+      root->right->parent = root;
+  }
   return root;
   
 }
@@ -2294,6 +2298,39 @@ void test_40()
   cout << is_complete(root2) <<endl;
 
 }
+node * tree_find(node *root, int val)
+{
+  node *n = NULL;
+  if (!root)
+    return NULL;
+  if (root->c == val)
+    return root;
+  n = tree_find(root->left, val);
+  if (!n)
+    n = tree_find(root->right, val);
+  return n;
+}
+node * find_next(node *n)
+{
+
+}
+void test_41()
+{
+  int arr[]= {6,3,9,1,4,8,10, -1,2,-1,5,7,-1,-1,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  node *root, *root1, *n;
+  vector<int> v;
+  vector<int> v2;
+  
+  
+  root = init_tree2(arr, len, 0);
+  n = find_next(tree_find(root, 10));
+  cout<< n->c <<endl;
+  n = find_next(tree_find(root, 6));
+  cout <<n->c <<endl;
+  n = find_next(tree_find(root, 5));
+  cout << n->c <<endl;
+}
 
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
@@ -2336,6 +2373,6 @@ void test16()
 int main()
 {
   //test3();
-  test_40();
+  test_41();
   //sort_words();
 }
