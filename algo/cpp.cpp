@@ -2311,24 +2311,44 @@ node * tree_find(node *root, int val)
 }
 node * find_next(node *n)
 {
+  /*
+cases:
+a) if has right subtree, return the leftmost node 
+b) else find first parent that goes right
+c) if no right parent, returns null. 
 
+*/
+  node *next = NULL;
+  if (n->right) {
+    for (next=n->right; next->left; next=next->left)
+      ;
+  }
+  else {
+    node *tmp;
+    for (next=n->parent, tmp=n; next && next->right==tmp;
+         tmp=next, next=next->parent)
+      ;
+  }
+  return next;
 }
 void test_41()
 {
   int arr[]= {6,3,9,1,4,8,10, -1,2,-1,5,7,-1,-1,-1};
   int len = sizeof(arr)/sizeof(arr[0]);
   node *root, *root1, *n;
-  vector<int> v;
-  vector<int> v2;
-  
-  
+
   root = init_tree2(arr, len, 0);
   n = find_next(tree_find(root, 10));
-  cout<< n->c <<endl;
+  if (n)
+    cout << n->c <<endl;
+  else
+    cout<<"n is null"<<endl;
+  
+
   n = find_next(tree_find(root, 6));
   cout <<n->c <<endl;
   n = find_next(tree_find(root, 5));
-  cout << n->c <<endl;
+  cout<< n->c <<endl;
 }
 bool bst_search(node *root, int val)
 {
@@ -2541,6 +2561,6 @@ void test16()
 int main()
 {
   //test3();
-  test_34();
+  test_41();
   //sort_words();
 }
