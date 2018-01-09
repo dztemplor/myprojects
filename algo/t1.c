@@ -2295,6 +2295,47 @@ void test_37()
     _test_37(arr2, n);
 
 }
+void get_next_array(char *ms, int *next)
+{
+    if (strlen(ms) == 1)
+        next[0]=-1;
+    next[0] = -1;
+    next[1] = 0;
+    int pos = 2, cn=0;
+    while (pos < strlen(ms)) {
+        if (ms[pos-1] == ms[cn])
+            next[pos++] = ++cn;
+        else if (cn>0)
+            cn = next[cn];
+        else
+            next[pos++] = 0;
+    }
+}
+int get_index(char *s, char *m)
+{
+    if (!s || !m || strlen(s)<strlen(m))
+        return -1;
+    int si=0, mi=0;
+    int next[strlen(m)];
+    get_next_array(m, next);
+    while (si<strlen(s) && mi<strlen(m)) {
+        if (s[si] == m[mi]) {
+            si++;
+            mi++;
+        }
+        else if (next[mi] == -1)
+            si++;
+        else
+            mi = next[mi];
+    }
+    return mi == strlen(m)?si-mi:-1;
+}
+void test_38()
+{
+    printf("%d\n", get_index("abcd", "cd"));
+    printf("%d\n", get_index("abcdefgh", "def"));
+}
+
 int main()
 {
 #if 0    
@@ -2461,5 +2502,26 @@ int main()
 	//test_2();
 	//test_3();
         //test_4();
-        test_37();
+        //test_37();
+
+
+#if 0
+        {
+  int arr[3][4] = {
+    {0,1,2,3},
+    {4,5,6,7},
+    {8,9,10,11}
+  };
+  int (*row)[4];
+  int *col;
+  for (row = arr; row!=arr+3; ++row)
+    for (col = *row; col!= *row+4; ++col)
+        printf("%d ", *col);
+
+  printf("\n");
+  printf("%d \n", (char *)(arr+1)- (char *)arr);
+
+        }
+#endif
+        test_38();
 }

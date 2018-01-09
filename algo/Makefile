@@ -4,4 +4,4 @@ cpp: cpp.cpp
 trie: trie_tree.cpp
 	g++ $^  -std=c++11 -g -o $@
 t1: t1.c
-	gcc $^ -g -o $@
+	gcc $^ -g   -o $@
