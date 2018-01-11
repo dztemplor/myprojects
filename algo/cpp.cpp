@@ -2519,6 +2519,127 @@ void test_37()
   root = gen_bst(arr1, n);
   tree_preorder(root);
 }
+node * find_common_parent(node *root, node *n1, node *n2)
+{
+  /*
+postorder traverse.
+for each node,
+ if curr == n1 or n2, return curr
+ else if (curr->left && curr->right) return curr
+ else if (curr->left || curr->right) return curr
+ else if (!curr->left && !curr->right) return null
+*/
+  node *left, *right;
+  if (!root)
+    return NULL;
+  
+  left = find_common_parent(root->left, n1, n2);
+  right = find_common_parent(root->right, n1, n2);
+
+  if (root == n1 || root == n2)
+    return root;
+  else if (!left && !right)
+    return NULL;
+  else if (left && right)
+    return root;
+  else if (left && !right)
+    return left;
+  else if (right && !left)
+    return right;
+}
+void test_42()
+{
+  int arr[]= {1,2,3,4,5,6,7,-1,-1,-1,-1,-1,8,-1,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  node *root, *root1, *n;
+
+  root = init_tree2(arr, len, 0);
+  n = find_common_parent(root, tree_find(root, 5), tree_find(root, 8));
+  cout <<n->c <<endl;
+  n = find_common_parent(root, tree_find(root, 7), tree_find(root, 8));
+  cout <<n->c <<endl;
+  n = find_common_parent(root, tree_find(root, 1), tree_find(root, 5));
+  cout <<n->c <<endl;
+}
+struct node_pair {
+  node *n1, *n2;
+  node_pair(node *n1=NULL, node *n2=NULL):n1(n1), n2(n2) {}
+  
+  friend bool operator==(const node_pair &lhs, const node_pair &rhs)
+  {
+    return (lhs.n1 == rhs.n1 && lhs.n2==rhs.n2) || (lhs.n1==rhs.n2 && lhs.n2 == rhs.n1);
+  }
+};
+size_t hasher(const node_pair &sd)
+{
+  return hash<int>() ((sd.n1->c <<16)  | sd.n2->c);
+}
+
+void generate_parent_map(node *root, unordered_map<node_pair, node *, decltype(hasher) *> &map, list<node *> &l)
+{
+  /*
+ preorder recurse, 
+ for each node in root.
+ generate_parent_map(root->left, map, v) then generate_parent_map(root->right, map, v)
+ l will collects subtree's node vector.
+ to generate map:
+ generate node_pair with left l and root, add to map , common parent is root,
+ generate node_pair with right l and root, add to map, common parent is root
+ pair left l and right l, common parent is root, add to map
+*/
+  list<node *> left, right;
+  if (!root)
+    return;
+
+  l.clear();
+  generate_parent_map(root->left, map, left);
+  if (left.size()) {
+    for (auto n1: left) {
+      node_pair p(root, n1);
+      map.insert(pair<node_pair, node *>(p, root));
+    }
+  }
+  generate_parent_map(root->right, map, right);
+  if (right.size()) {
+    for (auto n2:left) {
+      node_pair p(root,n2);
+      map.insert(pair<node_pair, node *>(p, root));
+    }
+  }
+
+  for (auto n1:left) {
+    for (auto n2:right) {
+      node_pair p(n1, n2);
+      map.insert(pair<node_pair, node *>(p, root));
+    }
+  }
+
+  right.splice(right.begin(), left);
+  right.push_front(root);
+  l = right;
+  print_list2(l);
+
+}
+
+void test_43()
+{
+
+  int arr[]= {1,2,3,4,5,6,7,-1,-1,-1,-1,-1,8,-1,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  node *root, *root1, *n;
+  unordered_map<node_pair, node *, decltype(hasher) *> map(10, hasher);
+  list<node *>l;
+  
+  root = init_tree2(arr, len, 0);
+
+  generate_parent_map(root, map, l);
+
+  for (auto i: map) {
+    //cout << "(" << i.first.n1->c << ","<<  i.first.n2->c << ") " << i.second->c <<endl;
+  }
+
+}
+
 
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
@@ -2561,6 +2682,6 @@ void test16()
 int main()
 {
   //test3();
-  test_41();
+  test_43();
   //sort_words();
 }
