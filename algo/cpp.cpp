@@ -17,7 +17,6 @@
 using namespace std;
 void print_vec(vector<int> &v)
 {
-
   for (int i=0; i<v.size(); i++)
     cout<< v[i]<< " ";
   cout<<endl;
@@ -2103,7 +2102,7 @@ recurse finish:
     return false;
 }
 
-void test_37()
+void test_37_2()
 {
   int arr1[]= {0,1,3,6,2,4,5,10,11,14,15,12,16,13,20}; //inorder
   int arr2[]= {6,1,12,0,3,10,13,4,14,16,20,2,5,11,15}; //levelorder
@@ -2312,25 +2311,335 @@ node * tree_find(node *root, int val)
 }
 node * find_next(node *n)
 {
+  /*
+cases:
+a) if has right subtree, return the leftmost node 
+b) else find first parent that goes right
+c) if no right parent, returns null. 
 
+*/
+  node *next = NULL;
+  if (n->right) {
+    for (next=n->right; next->left; next=next->left)
+      ;
+  }
+  else {
+    node *tmp;
+    for (next=n->parent, tmp=n; next && next->right==tmp;
+         tmp=next, next=next->parent)
+      ;
+  }
+  return next;
 }
 void test_41()
 {
   int arr[]= {6,3,9,1,4,8,10, -1,2,-1,5,7,-1,-1,-1};
   int len = sizeof(arr)/sizeof(arr[0]);
   node *root, *root1, *n;
-  vector<int> v;
-  vector<int> v2;
-  
-  
+
   root = init_tree2(arr, len, 0);
   n = find_next(tree_find(root, 10));
-  cout<< n->c <<endl;
+  if (n)
+    cout << n->c <<endl;
+  else
+    cout<<"n is null"<<endl;
+  
+
   n = find_next(tree_find(root, 6));
   cout <<n->c <<endl;
   n = find_next(tree_find(root, 5));
-  cout << n->c <<endl;
+  cout<< n->c <<endl;
 }
+bool bst_search(node *root, int val)
+{
+  if (!root)
+    return false;
+  if (root->c > val)
+    return bst_search(root->left, val);
+  else if (root->c < val)
+    return bst_search(root->right, val);
+  else
+    return true;
+}
+  
+void find_max_top(node *root, int &max)
+{
+/*
+find a tree's max BST topology
+for each node, find its max top
+vector<int> bst_nodes, list<int> child_nodes
+while (!child_nodes.empty()) 
+  if a node can be found with bst rule, move it to bst_nodes,
+  then add its children into child_nodes.
+if bst_nodes.size() >max, update max
+
+child_nodes op: if found, move it to bst_nodes, add child nodes. remove it in child_nodes
+
+*/
+  if (!root)
+    return;
+  vector<int> bst_nodes;
+  list<node *> child_nodes;
+  bst_nodes.push_back(root->c);
+  if (root->left)
+    child_nodes.push_back(root->left);
+  if (root->right)
+    child_nodes.push_back(root->right);
+  while (!child_nodes.empty()) {
+    for (auto it= child_nodes.begin(); it != child_nodes.end() ;  ) {
+      node *n = *it;
+      if (bst_search(root, n->c)) {
+        bst_nodes.push_back(n->c);
+        if (n->left)
+          child_nodes.push_back(n->left);
+        if (n->right)
+          child_nodes.push_back(n->right);
+      }
+      it = child_nodes.erase(it);
+    }
+  }
+  if (bst_nodes.size() > max)  {
+    max = bst_nodes.size();
+    print_vec(bst_nodes);
+  }
+}
+bool is_subtree3(node *root, node *root1)
+{
+  /*
+if root and root1 are both null, true
+if root and root1 either is null, false
+if root->c == root1->c && is_subtree3(root->left, root1->left) && is_subtree3(root->right, root1->right)
+ true
+*/  
+  if (!root && !root1)
+    return true;
+  else if (root && !root1)
+    return false;
+  else if (!root && root1)
+    return false;
+
+  return root->c==root1->c && is_subtree3(root->left, root1->left) && is_subtree3(root->right, root1->right);
+}
+bool has_subtree(node *root, node *root1)
+{
+  /*
+check if root has exact subtree of root1
+dfs
+  for each node in root, check is_subtree3()
+*/
+  if (is_subtree3(root, root1))
+    return true;
+  return root && (has_subtree(root->left, root1) || has_subtree(root->right, root1) );
+}
+
+
+void test_35_2()
+{
+  int arr1[]= {0,1,3,6,2,4,5,10,11,14,15,12,20,13,16}; //inorder
+  int arr2[]= {6,1,12,0,3,10,13,4,14,20,16,2,5,11,15}; //levelorder
+  int n = sizeof(arr1)/sizeof(arr1[0]);
+  node *root;
+  
+  root = construct_tree3(arr1, arr2, n, 1);
+#if 0  
+  print_postorder(root);
+  cout<<endl;
+  print_inorder(root);
+  cout<<endl;  
+#endif
+  int max = 0;
+  find_max_top(root, max);
+  cout<<max<<endl;
+}
+
+void test_36_2()
+{
+  int arr1[]= {4,8,2,9,5,1,6,3,7}; //inorder
+  int arr2[]= {1,2,3,4,5,6,7,8,9}; //levelorder
+  int n = sizeof(arr1)/sizeof(arr1[0]);
+  node *root, *root1, *root2;
+
+  root = construct_tree3(arr1, arr2, n, 1);
+  //print_inorder(root);
+  //cout<<endl;  
+
+  int arr3[]= {4,8,2,9,5}; //inorder
+  int arr4[]= {2,4,5,8,9}; //levelorder
+  n = sizeof(arr3)/sizeof(arr3[0]);
+  root1 = construct_tree3(arr3, arr4, n, 1);
+  //print_inorder(root1);
+  //cout<<endl;
+
+  int arr5[]= {4,8,2,5}; //inorder
+  int arr6[]= {2,4,5,8}; //levelorder
+  n = sizeof(arr5)/sizeof(arr5[0]);
+  root2 = construct_tree3(arr5, arr6, n, 1);
+  //print_inorder(root2);
+  //cout<<endl;
+
+  cout<< has_subtree(root, root1)<<endl;
+  cout<< has_subtree(root, root2)<<endl;
+}
+
+node * gen_bst(int *arr, int len)
+{
+  /*
+for arr, find mid, set it as root, divide to left and right, recurse
+if len==0, return NULL
+*/
+  int mid, len1, len2;
+
+  if (!len)
+    return NULL;
+  
+  mid = len/2;
+  node *root = new node(arr[mid]);
+  len1 = mid;
+  len2 = len-mid-1;
+  root->left = gen_bst(arr, len1);
+  if (len2) 
+    root->right = gen_bst(arr+mid+1, len2);
+  else
+    root->right = NULL;
+  
+  return root;
+}
+
+void test_37()
+{
+  int arr[]= {1,3,4,6,8,10,11};
+  int n = sizeof(arr)/sizeof(arr[0]);
+  node *root;
+
+  root = gen_bst(arr, n);
+  tree_preorder(root);
+
+  int arr1[] = {1,3,6,10,11};
+  n = sizeof(arr1)/sizeof(arr1[0]);
+  root = gen_bst(arr1, n);
+  tree_preorder(root);
+}
+node * find_common_parent(node *root, node *n1, node *n2)
+{
+  /*
+postorder traverse.
+for each node,
+ if curr == n1 or n2, return curr
+ else if (curr->left && curr->right) return curr
+ else if (curr->left || curr->right) return curr
+ else if (!curr->left && !curr->right) return null
+*/
+  node *left, *right;
+  if (!root)
+    return NULL;
+  
+  left = find_common_parent(root->left, n1, n2);
+  right = find_common_parent(root->right, n1, n2);
+
+  if (root == n1 || root == n2)
+    return root;
+  else if (!left && !right)
+    return NULL;
+  else if (left && right)
+    return root;
+  else if (left && !right)
+    return left;
+  else if (right && !left)
+    return right;
+}
+void test_42()
+{
+  int arr[]= {1,2,3,4,5,6,7,-1,-1,-1,-1,-1,8,-1,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  node *root, *root1, *n;
+
+  root = init_tree2(arr, len, 0);
+  n = find_common_parent(root, tree_find(root, 5), tree_find(root, 8));
+  cout <<n->c <<endl;
+  n = find_common_parent(root, tree_find(root, 7), tree_find(root, 8));
+  cout <<n->c <<endl;
+  n = find_common_parent(root, tree_find(root, 1), tree_find(root, 5));
+  cout <<n->c <<endl;
+}
+struct node_pair {
+  node *n1, *n2;
+  node_pair(node *n1=NULL, node *n2=NULL):n1(n1), n2(n2) {}
+  
+  friend bool operator==(const node_pair &lhs, const node_pair &rhs)
+  {
+    return (lhs.n1 == rhs.n1 && lhs.n2==rhs.n2) || (lhs.n1==rhs.n2 && lhs.n2 == rhs.n1);
+  }
+};
+size_t hasher(const node_pair &sd)
+{
+  return hash<int>() ((sd.n1->c <<16)  | sd.n2->c);
+}
+
+void generate_parent_map(node *root, unordered_map<node_pair, node *, decltype(hasher) *> &map, list<node *> &l)
+{
+  /*
+ preorder recurse, 
+ for each node in root.
+ generate_parent_map(root->left, map, v) then generate_parent_map(root->right, map, v)
+ l will collects subtree's node vector.
+ to generate map:
+ generate node_pair with left l and root, add to map , common parent is root,
+ generate node_pair with right l and root, add to map, common parent is root
+ pair left l and right l, common parent is root, add to map
+*/
+  list<node *> left, right;
+  if (!root)
+    return;
+
+  l.clear();
+  generate_parent_map(root->left, map, left);
+  if (left.size()) {
+    for (auto n1: left) {
+      node_pair p(root, n1);
+      map.insert(pair<node_pair, node *>(p, root));
+    }
+  }
+  generate_parent_map(root->right, map, right);
+  if (right.size()) {
+    for (auto n2:left) {
+      node_pair p(root,n2);
+      map.insert(pair<node_pair, node *>(p, root));
+    }
+  }
+
+  for (auto n1:left) {
+    for (auto n2:right) {
+      node_pair p(n1, n2);
+      map.insert(pair<node_pair, node *>(p, root));
+    }
+  }
+
+  right.splice(right.begin(), left);
+  right.push_front(root);
+  l = right;
+  print_list2(l);
+
+}
+
+void test_43()
+{
+
+  int arr[]= {1,2,3,4,5,6,7,-1,-1,-1,-1,-1,8,-1,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  node *root, *root1, *n;
+  unordered_map<node_pair, node *, decltype(hasher) *> map(10, hasher);
+  list<node *>l;
+  
+  root = init_tree2(arr, len, 0);
+
+  generate_parent_map(root, map, l);
+
+  for (auto i: map) {
+    //cout << "(" << i.first.n1->c << ","<<  i.first.n2->c << ") " << i.second->c <<endl;
+  }
+
+}
+
 
 void print_postorder(int *pre, int *in, int len)
 {
@@ -2523,6 +2832,5 @@ void test16()
 int main()
 {
   //test3();
-  test_45();
   //sort_words();
 }
