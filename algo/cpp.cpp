@@ -2332,6 +2332,156 @@ void test_41()
   cout << n->c <<endl;
 }
 
+void print_postorder(int *pre, int *in, int len)
+{
+  /*
+given preorder and inorder, print postorder
+split the tree to left, right tree
+print left tree, then right tree, then root.
+*/
+  if (!len)
+    return;
+  
+  int index, len1, len2;
+  
+  index = node_find(in, pre[0], len);
+  len1 = index;
+  len2 = len-index-1;
+  print_postorder(pre+1, in, len1);
+  print_postorder(pre+1+len1, in+index+1, len2);
+  printf("%d ", pre[0]);
+}
+void test_42()
+{
+  int arr[] = {1,2,4,5,3,7};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  int arr1[] = {4,2,5,1,3,7};
+  vector<int> v;
+  print_postorder(arr, arr1, len);
+  cout<<endl;
+}
+int get_hight(node *root)
+{
+  node *n;
+  int ret=1;
+  for (n = root; n->left ;n = n->left, ret++)
+    ;
+  return ret;
+}
+int get_tree_node_num(node *root, int l, int h)
+{
+  /* root is a complete tree
+first get tree hight, by going to the leftmost node
+for a tree, there are 2 conditions:
+ a) right is complete
+ b) left is complete
+use bs(node, l, h)
+*/
+
+  if (!root)
+    return 0;
+  node *n;
+  int h1 = l;
+  if (root->right)
+    h1++;
+
+  for (n=root->right; n && n->left; n=n->left, h1++)
+    ;
+  //printf("h1, l ,val, %d %d %d\n", h1, l, root->c);
+
+  
+  if (h1 == h)  
+    return (1<<(h-l))+get_tree_node_num(root->right, l+1, h);
+  else
+    return (1<<(h-l-1)) +get_tree_node_num(root->left, l+1, h);
+}
+
+void test_43()
+{
+  int arr[] = {1,2,3,4,5,6,7,8,9,10,-1,-1,-1,-1,-1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  int arr1[] = {1,2,3,4,5,6,7,8,9,10,11,12,-1,-1,-1};
+
+  node *root, root1;
+  int h;
+
+
+  root = init_tree2(arr, len, 0);
+  //tree_preorder(root);
+  h =get_hight(root);
+  //cout<<h<<endl;
+  cout << get_tree_node_num(root, 1, h) <<endl;
+  
+  len = sizeof(arr1)/sizeof(arr1[0]);
+  root = init_tree2(arr1, len, 0);
+  h = get_hight(root);
+  cout << get_tree_node_num(root, 1, h) << endl;
+}
+
+
+int min_coins(int *arr, int len, int aim, vector<vector<int>> &maps)
+{
+  if (!len)
+    return (aim==0) ? 1:0 ;
+  int i;
+  int ret=0;
+  if (maps[len][aim] == -1) {
+    for (i=0; i*arr[0]<=aim; i++)
+      ret += min_coins(arr+1, len-1, aim-(i*arr[0]), maps);
+    
+    maps[len][aim] = ret;
+  }
+  else
+    ret = maps[len][aim];
+  
+  return ret;
+}
+void test_44()
+{
+  int arr[]= {5,10,25,1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  int aim=10000;
+  vector<vector<int>> maps(len+1);
+  for (int i=0;i<len+1; i++) {
+    for (int j=0; j<aim+1; j++)
+      maps[i].push_back(-1);
+  }
+
+
+  cout << min_coins(arr, len, aim, maps) <<endl;
+}
+
+int min_coins3(int *arr, int len, int aim)
+{
+  int dp[len][aim+1] ;
+  for (int i=0; i<len ;i++)
+    for (int j=0; j<aim+1; j++)
+      dp[i][j] = 0;
+  for (int i=0; i<len; i++)
+    dp[i][0] = 1;
+  for (int j=1; arr[0]*j<=aim; j++)
+    dp[0][arr[0]*j] = 1;
+  int num = 0;
+  for (int i=1; i<len; i++) {
+    for (int j=1; j<=aim;j++) {
+      num = 0;
+      for (int k=0; j-arr[i]*k>=0; k++) 
+        num += dp[i-1][j-arr[i] *k];
+      
+      dp[i][j]= num;
+    }
+  }
+  return dp[len-1][aim];
+}
+void test_45()
+{
+  int arr[]= {5,10,25,1};
+  int len = sizeof(arr)/sizeof(arr[0]);
+  int aim=10000;
+  cout << min_coins3(arr, len, aim) <<endl;
+}
+
+
 #if 0
 int backtrace(int r, int c, int m, int n, int mat[][6])
 {
@@ -2373,6 +2523,6 @@ void test16()
 int main()
 {
   //test3();
-  test_41();
+  test_45();
   //sort_words();
 }
