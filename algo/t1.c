@@ -2335,6 +2335,43 @@ void test_38()
     printf("%d\n", get_index("abcd", "cd"));
     printf("%d\n", get_index("abcdefgh", "def"));
 }
+typedef int (*func_t) (int *p);
+int func1(int *p)
+{
+     return 0;
+}
+int  (*func(int *p))[5]
+{
+     static int arr[2][5];
+     return arr;
+}
+func_t test24_1(func_t in)
+{
+
+     return func1;
+}
+
+
+void test_24_2()
+{
+     func_t arr[2][5] ={{func1, func1, func1, func1, func1},
+                        {func1, func1, func1, func1, func1}
+     };
+     int (*(*funcs)[5])(int *p) = arr;     
+     int (*(*func2)(int *p))[5] = func;
+     int (*funcs3[5])(int *p)= {func1, func1, func1, func1, func1};
+
+     int a[5]={1,2,3,4,5};
+     int *ptr= (int *)(&a +1);
+     printf("%d\n", *(ptr-1));
+
+     /*f1 and f2 are same; *f1 and f1 are same; f1 and &f1 are not*/
+     func_t f1 = func1; 
+     func_t f2 = &func1;;
+
+     printf("f1 %p &f1 %p *f1 %p func1 %p ret1 %d ret2 %d  \n", f1, &f1, *f1, func1,  f1(NULL), (*f1)(NULL));
+     printf("f2 %p *f2 %p ret1 %d ret2 %d\n", f2, *f2, f2(NULL), (*f2)(NULL));
+}
 
 int main()
 {
